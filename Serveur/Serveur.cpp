@@ -30,6 +30,7 @@ bool bytesVerification(int bytesReceveid) {
 
 	if (bytesReceveid <= 0) {
 		cout << "Une erreur de réception s'est produite" << endl;
+		// TODO : Socket close et retirer du master fd_set
 		return false;
 	}
 	return true;
@@ -82,7 +83,7 @@ int main() {
 	fd_set master;
 	FD_ZERO(&master);
 
-	FD_SET(listeningSocket, &master); // Arbre des sockets
+	FD_SET(listeningSocket, master); // Arbre des sockets
 
 	while (true) {
 
@@ -155,7 +156,10 @@ int main() {
 				ZeroMemory(buf, 4096);
 				bytesReceived = recv(sock, buf, 4096, 0);
 
-				cout << string(buf, 0, bytesReceived) << endl;
+				if (bytesVerification(bytesReceived, &sock, &master)) {
+
+					cout << string(buf, 0, bytesReceived) << endl;
+				}
 
 			}
 		}
