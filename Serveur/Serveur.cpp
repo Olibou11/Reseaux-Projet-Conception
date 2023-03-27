@@ -25,22 +25,6 @@
 using namespace std;
 namespace fs = filesystem;
 
-// Méthode permettant de diviser un string avec un séparateur
-vector<string> splitString(string msgReceived, const char separator) {
-
-	vector<string> splittedMsg;
-	splittedMsg.clear();
-
-	stringstream streamData(msgReceived);
-
-	string val;
-
-	while (getline(streamData, val, separator))
-		splittedMsg.push_back(val);
-
-	return splittedMsg;
-}
-
 // Main
 int main() {
 
@@ -114,11 +98,6 @@ int main() {
 				// Ajoute la nouvelle connexion dans la liste des clients connectés
 				FD_SET(clientSocket, &master);
 
-				// Envoie d'un message de bienvenu dans la console du client
-
-				string welcome = servMsg + "Bienvenue dans le serveur!";
-				send(clientSocket, welcome.c_str(), (int)welcome.size() + 1, 0);
-
 				// Affichage de la connexion du client dans la console du serveur
 
 				char host[NI_MAXHOST];
@@ -156,128 +135,8 @@ int main() {
 				vector<string> fileNameVec(0);
 				string fileName;
 
-				// On recoit des instructions du client sous la forme d'un string
 
-				ZeroMemory(buf, 4096);
-				bytesReceived = recv(sock, buf, 4096, 0);
 
-				if (bytesReceived > 0) {
-
-					msgReceived = string(buf, 0, bytesReceived);
-					splittedMsg = splitString(msgReceived, ' ');
-
-					if (splittedMsg[0] == "<CONNECTION>") { // Le client souhaite se connecter
-
-						if (splittedMsg[1] == "admin" && splittedMsg[2] == "1234")
-							cout << servMsg << "La connexion du client est etablie!" << endl;
-
-						else {
-							cout << errorMsg << "La connexion du client a echoue. Le client sera deconnecte!" << endl;
-							closesocket(sock);
-							FD_CLR(sock, &master);
-						}
-					}
-
-					else if (splittedMsg[0] == "<FILE>") { // Le client veut obtenir un fichier ou quitter
-
-						if (stoi(splittedMsg[1]) != 0) { // Le client veut un fichier
-
-							// Trouver le fichier
-
-							pathIndex = stoi(splittedMsg[1]) - 1; // Correction de la position
-
-							count = 0;
-							for (const auto& entry : fs::directory_iterator(path)) {
-								if (count == pathIndex)
-									filePath = entry.path().generic_string();
-								count++;
-							}
-
-							// Lire le fichier
-
-							ifstream file(filePath, ios::binary);
-
-							if (file.is_open()) {
-
-								// Envoyer la taille (octets) du fichier
-
-								file.seekg(0, ios::end);
-								fileSize = file.tellg();
-								send(sock, (char*)&fileSize, sizeof(long), 0);
-
-								// Envoyer le nom du fichier
-
-								fileNameVec = splitString(filePath, '/');
-								fileName = fileNameVec.back();
-								send(sock, fileName.c_str(), 4096, 0);
-
-								// Envoyer le fichier partie par partie
-
-								file.seekg(0, ios::beg);
-
-								do {
-									// Lecture du fichier et envoie
-
-									ZeroMemory(buf, 4096);
-									file.read(buf, 4096);
-
-									if (file.gcount() > 0)
-										send(sock, buf, file.gcount(), 0);
-
-								} while (file.gcount() > 0);
-
-								file.close();
-
-								// Réception d'un message de confirmation, puis affichage
-
-								ZeroMemory(buf, 4096);
-								bytesReceived = recv(sock, buf, 4096, 0);
-
-								if (bytesReceived > 0) {
-									msgReceived = string(buf, 0, bytesReceived);
-									cout << msgReceived << endl;
-								}
-
-								else {
-									cout << errorMsg << "Le message recu est null. Le client sera deconnecte!" << endl;
-									closesocket(sock);
-									FD_CLR(sock, &master);
-								}
-							}
-
-							else { // Le client souhaite quitter
-								cout << errorMsg << "Le fichier est introuvable. Le client sera deconnecte!" << endl;
-								closesocket(sock);
-								FD_CLR(sock, &master);
-							}
-						}
-
-						else {
-							cout << servMsg << "Le client souhaite se deconnecter... Fait!" << endl;
-							closesocket(sock);
-							FD_CLR(sock, &master);
-						}
-					}
-				}
-
-				else {
-					cout << errorMsg << "Le message recu est null. Le client sera deconnecte!" << endl;
-					closesocket(sock);
-					FD_CLR(sock, &master);
-				}
-
-				// Envoyer le menu des fichiers au client (Il se produit à tous les tours)
-
-				menu.clear();
-				menu = servMsg + "Voici les fichiers du serveur:\n[0] Quitter\n";
-
-				count = 1;
-				for (const auto& entry : fs::directory_iterator(path)) {
-					menu = menu + "[" + to_string(count) + "] " + entry.path().generic_string() + "\n";
-					count++;
-				}
-
-				send(sock, menu.c_str(), (int)menu.size() + 1, 0);
 			}
 		}
 	}
