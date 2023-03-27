@@ -17,6 +17,16 @@
 // Namespace
 using namespace std;
 
+// Méthode de vérification des bytesRecv
+bool bytesVerification(int bytesReceveid){
+
+	if (bytesReceveid <= 0) {
+		cout << "Une erreur de réception s'est produite" << endl;
+		return false;
+	}
+	return true;
+}
+
 // Main
 int main() {
 
@@ -81,10 +91,6 @@ int main() {
 	int bytesReceived = 0;
 	string msgReceived = "";
 
-	string userInputAdmin = "";
-	string userInputPW = "";
-	string inputConnection = "";
-
 	string userInput = "";
 
 	long fileSize = 0;
@@ -93,6 +99,28 @@ int main() {
 
 	const string path = "../Out/";
 
+	// Réception du message de confirmation de connexion
+	
+	ZeroMemory(buf, 4096);
+	bytesReceived = recv(clientSocket, buf, 4096, 0);
+
+	if (bytesVerification(bytesReceived)) {
+
+		cout << string(buf, 0, bytesReceived) << endl;
+
+		// Échange commande / Txt
+
+		while (true) {
+
+			cout << clientMsg << "Veuillez entrer une commande :" << endl;
+			cin >> userInput; // TODO : Faire une vérification > 0
+
+			ZeroMemory(buf, 4096);
+			send(clientSocket, userInput.c_str(), (int)userInput.size() + 1, 0);
+
+			//recv()
+		}
+	}
 
 	// Close
 

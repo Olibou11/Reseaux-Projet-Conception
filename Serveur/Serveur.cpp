@@ -25,6 +25,16 @@
 using namespace std;
 namespace fs = filesystem;
 
+// Méthode de vérification des bytesRecv
+bool bytesVerification(int bytesReceveid) {
+
+	if (bytesReceveid <= 0) {
+		cout << "Une erreur de réception s'est produite" << endl;
+		return false;
+	}
+	return true;
+}
+
 // Main
 int main() {
 
@@ -98,6 +108,11 @@ int main() {
 				// Ajoute la nouvelle connexion dans la liste des clients connectés
 				FD_SET(clientSocket, &master);
 
+				// Envoie un message de confirmation au client
+				
+				string welcome = "La connexion a ete etablie!";
+				send(clientSocket, welcome.c_str(), (int)welcome.size() + 1, 0);
+
 				// Affichage de la connexion du client dans la console du serveur
 
 				char host[NI_MAXHOST];
@@ -125,7 +140,7 @@ int main() {
 				string msgReceived = "";
 				vector<string> splittedMsg(0);
 
-				string menu = "";
+				string commande = "";
 				int count = 0;
 				const string path = "../Data/";
 
@@ -135,7 +150,12 @@ int main() {
 				vector<string> fileNameVec(0);
 				string fileName;
 
+				// On recoit les commandes
 
+				ZeroMemory(buf, 4096);
+				bytesReceived = recv(sock, buf, 4096, 0);
+
+				cout << string(buf, 0, bytesReceived) << endl;
 
 			}
 		}
