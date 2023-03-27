@@ -83,7 +83,7 @@ int main() {
 	fd_set master;
 	FD_ZERO(&master);
 
-	FD_SET(listeningSocket, master); // Arbre des sockets
+	FD_SET(listeningSocket, &master); // Arbre des sockets
 
 	while (true) {
 
@@ -156,7 +156,7 @@ int main() {
 				ZeroMemory(buf, 4096);
 				bytesReceived = recv(sock, buf, 4096, 0);
 
-				if (bytesVerification(bytesReceived, &sock, &master)) {
+				if (bytesVerification(bytesReceived)) {
 
 					cout << string(buf, 0, bytesReceived) << endl;
 				}
