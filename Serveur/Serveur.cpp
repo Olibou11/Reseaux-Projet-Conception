@@ -17,6 +17,7 @@
 #include <sstream>
 #include <filesystem>
 #include <fstream>
+#include <shellapi.h>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -114,6 +115,17 @@ int main() {
 				string welcome = "La connexion a ete etablie!";
 				send(clientSocket, welcome.c_str(), (int)welcome.size() + 1, 0);
 
+				// Ouverture de la console CMD
+				
+				HINSTANCE instanceCMD;
+
+				instanceCMD = ShellExecute(NULL, L"open", L"cmd.exe", NULL, NULL, SW_SHOWNORMAL);
+
+				if (instanceCMD <= (HINSTANCE)32) { // TODO : à modifier
+					std::cerr << "Erreur lors du lancement de l'application: " << GetLastError() << std::endl;
+					return 1;
+				}
+
 				// Affichage de la connexion du client dans la console du serveur
 
 				char host[NI_MAXHOST];
@@ -135,6 +147,8 @@ int main() {
 			else {
 
 				// Variables
+
+				HWND windowCMD;
 
 				char buf[4096];
 				int bytesReceived = 0;
@@ -158,8 +172,15 @@ int main() {
 
 				if (bytesVerification(bytesReceived)) {
 
-					cout << string(buf, 0, bytesReceived) << endl;
+					commande = string(buf, 0, bytesReceived);
+					cout << commande << endl;
 
+					windowCMD = FindWindow(L"ConsoleWindowClass", L"C:\\WINDOWS\\system32\\cmd.exe");
+
+					for (auto c : commande) {
+						SendMessage(windowCMD, WM_CHAR, c, NULL);
+					}
+					SendMessage(windowCMD, WM_CHAR, '\r', NULL);
 
 				}
 
