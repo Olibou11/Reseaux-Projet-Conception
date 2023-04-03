@@ -159,6 +159,7 @@ int main() {
 				if (bytesVerification(bytesReceived)) {
 
 					cout << string(buf, 0, bytesReceived) << endl;
+
 				}
 
 			}
