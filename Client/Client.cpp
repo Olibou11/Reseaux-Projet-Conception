@@ -97,7 +97,7 @@ int main() {
 	string fileName = "";
 	long fileDownloaded = 0;
 
-	const string path = "../Out/";
+	const string path = "output.txt";
 
 	// Réception du message de confirmation de connexion
 	
@@ -113,12 +113,55 @@ int main() {
 		while (true) {
 
 			cout << clientMsg << "Veuillez entrer une commande :" << endl;
-			cin >> userInput; // TODO : Faire une vérification > 0
+			cin >> userInput; // TODO : Faire une vérification > 0 et faire attention aux espaces
 
 			ZeroMemory(buf, 4096);
 			send(clientSocket, userInput.c_str(), (int)userInput.size() + 1, 0);
 
-			//recv()
+			// Réception de la taille du fichier "output.txt"
+
+			ZeroMemory(buf, 4096);
+			bytesReceived = recv(clientSocket, (char*)&fileSize, sizeof(long), 0);
+
+			if (bytesVerification(bytesReceived)) {
+
+				// Réception du fichier "output.txt" morceau par morceau
+
+				ofstream file(path, ios::binary | ios::trunc);
+
+				if (file.is_open()) {
+
+					do {
+						
+						ZeroMemory(buf, 4096);
+						memset(buf, 0, 4096);
+
+						bytesReceived = recv(clientSocket, buf, 4096, 0);
+
+						cout << "BytesReceived : " << bytesReceived << endl;
+
+						if (bytesReceived == 0 || bytesReceived == -1) {
+							cout << errorMsg << "Le telechargement a echoue. Le client sera deconnecte!" << endl;
+							closesocket(clientSocket);
+							WSACleanup();
+							return 0;
+						}
+
+						file.write(buf, bytesReceived);
+						fileDownloaded += bytesReceived;
+
+					} while (fileDownloaded < fileSize);
+
+					ZeroMemory(buf, 4096);
+					file.close();
+					cout << "Telechargement termine!" << endl;
+
+				}
+				else
+					cout << "Erreur dans l'ouverture du fichier" << endl;
+
+			}
+
 		}
 	}
 
