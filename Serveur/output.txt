@@ -1,27 +1,4 @@
+Microsoft Windows [version 10.0.19044.2728]
+(c) Microsoft Corporation. Tous droits r‚serv‚s.
 
-Configuration IP de Windows
-
-
-Carte r‚seau sans fil Connexion au r‚seau local* 10ÿ:
-
-   Statut du m‚dia. . . . . . . . . . . . : M‚dia d‚connect‚
-   Suffixe DNS propre … la connexion. . . : 
-
-Carte r‚seau sans fil Connexion au r‚seau local* 12ÿ:
-
-   Statut du m‚dia. . . . . . . . . . . . : M‚dia d‚connect‚
-   Suffixe DNS propre … la connexion. . . : 
-
-Carte Ethernet Ethernet :
-
-   Suffixe DNS propre … la connexion. . . : home
-   Adresse IPv6. . . . . . . . . . .ÿ. . .: fd5b:eee2:4212::8b0
-   Adresse IPv6 de liaison locale. . . . .: fe80::6f30:25b:18aa:5563%4
-   Adresse IPv4. . . . . . . . . . . . . .: 192.168.2.30
-   Masque de sous-r‚seau. . . .ÿ. . . . . : 255.255.255.0
-   Passerelle par d‚faut. . . .ÿ. . . . . : 192.168.2.1
-
-Carte r‚seau sans fil Wi-Fiÿ:
-
-   Statut du m‚dia. . . . . . . . . . . . : M‚dia d‚connect‚
-   Suffixe DNS propre … la connexion. . . : home
+C:\Users\Olivier\Desktop\Reseaux-Projet-Conception\Serveur>
