@@ -17,6 +17,7 @@
 #include <sstream>
 #include <filesystem>
 #include <fstream>
+#include <shellapi.h>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -110,9 +111,20 @@ int main() {
 				FD_SET(clientSocket, &master);
 
 				// Envoie un message de confirmation au client
-				
+
 				string welcome = "La connexion a ete etablie!";
 				send(clientSocket, welcome.c_str(), (int)welcome.size() + 1, 0);
+
+				// Ouverture de la console CMD
+
+				HINSTANCE instanceCMD;
+
+				instanceCMD = ShellExecute(NULL, L"open", L"cmd.exe", NULL, NULL, SW_SHOWNORMAL);
+
+				if (instanceCMD <= (HINSTANCE)32) { // TODO : à modifier
+					std::cerr << "Erreur lors du lancement de l'application: " << GetLastError() << std::endl;
+					return 1;
+				}
 
 				// Affichage de la connexion du client dans la console du serveur
 
@@ -136,6 +148,8 @@ int main() {
 
 				// Variables
 
+				HWND windowCMD;
+
 				char buf[4096];
 				int bytesReceived = 0;
 				string msgReceived = "";
@@ -143,7 +157,7 @@ int main() {
 
 				string commande = "";
 				int count = 0;
-				const string path = "../Data/";
+				const string path = "output.txt";
 
 				int pathIndex = 0;
 				string filePath = "";
@@ -151,16 +165,83 @@ int main() {
 				vector<string> fileNameVec(0);
 				string fileName;
 
-				// On recoit les commandes
+				// On recoit les commandes du client
 
 				ZeroMemory(buf, 4096);
 				bytesReceived = recv(sock, buf, 4096, 0);
 
 				if (bytesVerification(bytesReceived)) {
 
-					cout << string(buf, 0, bytesReceived) << endl;
+					commande = string(buf, 0, bytesReceived);
+					cout << commande << endl;
+
+					// On execute la commande du client dans le CMD
+
+					windowCMD = FindWindow(L"ConsoleWindowClass", L"C:\\WINDOWS\\system32\\cmd.exe");
+
+					commande += " > output.txt";
+
+					for (auto c : commande) {
+						SendMessage(windowCMD, WM_CHAR, c, NULL);
+					}
+					SendMessage(windowCMD, WM_CHAR, '\r', NULL);
 				}
 
+				// Lecture et envoie du ouput de la console
+
+				ifstream file(path, ios::binary);
+
+				if (file.is_open()) {
+
+					cout << "Document ouvert" << endl;
+
+
+					// Envoyer la taille (octets) du fichier
+
+					file.seekg(0, ios::end);
+					fileSize = file.tellg();
+					//send(sock, (char*)&fileSize, sizeof(long), 0);
+					
+					//envoyer la size du fichier au serveur
+					int bytesReceived = send(sock, (char*)&fileSize, sizeof(long), 0);
+					if (bytesReceived == 0 || bytesReceived == -1) {
+						closesocket(sock);
+						cout << "Erreur d'envoie de la taille du fichier " << endl;
+						WSACleanup();
+						return 0;
+					}
+
+					// Envoyer le fichier partie par partie
+
+					file.seekg(0, ios::beg);
+					/*
+					do {
+
+						// Lecture du fichier et envoie
+
+						ZeroMemory(buf, 4096);
+						file.read(buf, 4096);
+
+						if (file.gcount() > 0)
+							send(sock, buf, file.gcount(), 0); // voir projet 3
+
+					} while (file.gcount() > 0);
+
+					file.close();
+					*/
+					//lire le fichier
+					do {
+						file.read(buf, 4096);
+						if (file.gcount() > 0) {
+							int bytesReceived = send(sock, buf, file.gcount(), 0);
+						}
+					} while (file.gcount() > 0);
+					file.close();
+					cout << "Envoi du fichier reussi" << endl;
+
+				}
+				else
+					cout << "Erreur lors de l'ouverture" << endl;
 			}
 		}
 	}
@@ -168,3 +249,4 @@ int main() {
 	// Ménage de WinSock
 	WSACleanup();
 }
+
