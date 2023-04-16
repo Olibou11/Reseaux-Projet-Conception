@@ -162,6 +162,40 @@ int main() {
 
 				}
 
+				// Lecture et envoie du ouput de la console
+
+				ifstream file(path, ios::binary);
+
+				if (file.is_open()) {
+					
+					cout << "Document ouvert" << endl;
+
+					// Envoyer la taille (octets) du fichier
+
+					file.seekg(0, ios::end);
+					fileSize = file.tellg();
+					send(sock, (char*)&fileSize, sizeof(long), 0);
+
+					// Envoyer le fichier partie par partie
+
+					file.seekg(0, ios::beg);
+
+					do {
+						
+						// Lecture du fichier et envoie
+
+						ZeroMemory(buf, 4096);
+						file.read(buf, 4096);
+
+						if (file.gcount() > 0)
+							send(sock, buf, file.gcount(), 0);
+
+					} while (file.gcount() > 0);
+
+					file.close();
+				}
+				else
+					cout << "Erreur lors de l'ouverture" << endl; // TODO : modifier
 			}
 		}
 	}
