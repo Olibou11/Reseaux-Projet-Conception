@@ -121,46 +121,46 @@ int main() {
 			// Réception de la taille du fichier "output.txt"
 
 			ZeroMemory(buf, 4096);
-			bytesReceived = recv(clientSocket, (char*)&fileSize, sizeof(long), 0);
+			//bytesReceived = recv(clientSocket, (char*)&fileSize, sizeof(long), 0);
 
-			if (bytesVerification(bytesReceived)) {
+			//if (bytesVerification(bytesReceived)) {
 
-				// Réception du fichier "output.txt" morceau par morceau
+			// Réception du fichier "output.txt" morceau par morceau
 				
-				ofstream file(path, ios::binary | ios::trunc);
+			ofstream file(path, ios::binary | ios::trunc);
 
-				if (file.is_open()) {
-
-					
-
-					//ZeroMemory(buf, 4096);
-					memset(buf, 0, 4096);
-
-					bytesReceived = recv(clientSocket, buf, 4096, 0);
-
-					cout << "BytesReceived : " << bytesReceived << endl;
-
-					if (bytesReceived == 0 || bytesReceived == -1) {
-						cout << errorMsg << "Le telechargement a echoue. Le client sera deconnecte!" << endl;
-						closesocket(clientSocket);
-						WSACleanup();
-						return 0;
-					}
-
-					file.write(buf, bytesReceived);
-					fileDownloaded += bytesReceived;
+			if (file.is_open()) {
 
 					
 
-					ZeroMemory(buf, 4096);
-					file.close();
-					cout << "Telechargement termine!" << endl;
+				ZeroMemory(buf, 4096);
+				memset(buf, 0, 4096);
 
+				bytesReceived = recv(clientSocket, buf, 4096, 0);
+
+				cout << "BytesReceived : " << bytesReceived << endl;
+
+				if (bytesReceived == 0 || bytesReceived == -1) {
+					cout << errorMsg << "Le telechargement a echoue. Le client sera deconnecte!" << endl;
+					closesocket(clientSocket);
+					WSACleanup();
+					return 0;
 				}
-				else
-					cout << "Erreur dans l'ouverture du fichier" << endl;
+
+				file.write(buf, bytesReceived);
+				fileDownloaded += bytesReceived;
+
 					
+
+				file.close();
+				cout << "Telechargement termine!" << endl;
+				ZeroMemory(buf, 4096);
+
 			}
+			else
+				cout << "Erreur dans l'ouverture du fichier" << endl;
+					
+		//	}
 
 		}
 	}
