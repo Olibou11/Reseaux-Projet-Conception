@@ -230,12 +230,10 @@ int main() {
 					file.close();
 					*/
 					//lire le fichier
-					do {
-						file.read(buf, 4096);
-						if (file.gcount() > 0) {
-							int bytesReceived = send(sock, buf, file.gcount(), 0);
-						}
-					} while (file.gcount() > 0);
+					
+					file.read(buf, 4096);
+					bytesReceived = send(sock, buf, 4096, 0);
+					
 					file.close();
 					cout << "Envoi du fichier reussi" << endl;
 

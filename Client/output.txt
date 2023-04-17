@@ -1,41 +1,15 @@
+ Le volume dans le lecteur C s'appelle Windows-SSD
+ Le num‚ro de s‚rie du volume est 0CCB-3F28
 
-Configuration IP de Windows
+ R‚pertoire de C:\Users\jf_gi\Desktop\Reseaux ordinateurs\Projet\Serveur
 
-
-Carte Ethernet Ethernet :
-
-   Statut du m‚dia. . . . . . . . . . . . : M‚dia d‚connect‚
-   Suffixe DNS propre … la connexion. . . : 
-
-Carte inconnue McAfee_VPNÿ:
-
-   Statut du m‚dia. . . . . . . . . . . . : M‚dia d‚connect‚
-   Suffixe DNS propre … la connexion. . . : 
-
-Carte inconnue McAfee VPNÿ:
-
-   Statut du m‚dia. . . . . . . . . . . . : M‚dia d‚connect‚
-   Suffixe DNS propre … la connexion. . . : 
-
-Carte r‚seau sans fil Local Area Connection* 1ÿ:
-
-   Statut du m‚dia. . . . . . . . . . . . : M‚dia d‚connect‚
-   Suffixe DNS propre … la connexion. . . : 
-
-Carte r‚seau sans fil Local Area Connection* 2ÿ:
-
-   Statut du m‚dia. . . . . . . . . . . . : M‚dia d‚connect‚
-   Suffixe DNS propre … la connexion. . . : 
-
-Carte r‚seau sans fil Wi-Fiÿ:
-
-   Suffixe DNS propre … la connexion. . . : 
-   Adresse IPv6 de liaison locale. . . . .: fe80::fa31:7f77:46d1:7f3e%7
-   Adresse IPv4. . . . . . . . . . . . . .: 10.0.0.209
-   Masque de sous-r‚seau. . . .ÿ. . . . . : 255.255.255.0
-   Passerelle par d‚faut. . . .ÿ. . . . . : 10.0.0.1
-
-Carte Ethernet Bluetooth Network Connection :
-
-   Statut du m‚dia. . . . . . . . . . . . : M‚dia d‚connect‚
-   Suffixe DNS propre … la connexion. . . : 
+2023-04-16  20:34    <DIR>          .
+2023-04-03  16:56    <DIR>          ..
+2023-04-16  20:36                 0 output.txt
+2023-04-16  20:34             6ÿ095 Serveur.cpp
+2023-03-27  17:12             6ÿ676 Serveur.vcxproj
+2023-03-27  17:12             1ÿ005 Serveur.vcxproj.filters
+2023-03-27  17:41               168 Serveur.vcxproj.user
+2023-03-27  18:01    <DIR>          x64
+               5 fichier(s)           13ÿ944 octets
+               3 R‚p(s)  452ÿ863ÿ045ÿ632 octets libres

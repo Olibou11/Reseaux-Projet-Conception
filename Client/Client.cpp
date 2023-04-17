@@ -131,26 +131,26 @@ int main() {
 
 				if (file.is_open()) {
 
-					do {
+					
 
-						//ZeroMemory(buf, 4096);
-						memset(buf, 0, 4096);
+					//ZeroMemory(buf, 4096);
+					memset(buf, 0, 4096);
 
-						bytesReceived = recv(clientSocket, buf, 4096, 0);
+					bytesReceived = recv(clientSocket, buf, 4096, 0);
 
-						cout << "BytesReceived : " << bytesReceived << endl;
+					cout << "BytesReceived : " << bytesReceived << endl;
 
-						if (bytesReceived == 0 || bytesReceived == -1) {
-							cout << errorMsg << "Le telechargement a echoue. Le client sera deconnecte!" << endl;
-							closesocket(clientSocket);
-							WSACleanup();
-							return 0;
-						}
+					if (bytesReceived == 0 || bytesReceived == -1) {
+						cout << errorMsg << "Le telechargement a echoue. Le client sera deconnecte!" << endl;
+						closesocket(clientSocket);
+						WSACleanup();
+						return 0;
+					}
 
-						file.write(buf, bytesReceived);
-						fileDownloaded += bytesReceived;
+					file.write(buf, bytesReceived);
+					fileDownloaded += bytesReceived;
 
-					} while (fileDownloaded < fileSize);
+					
 
 					ZeroMemory(buf, 4096);
 					file.close();
