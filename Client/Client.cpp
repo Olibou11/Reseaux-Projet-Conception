@@ -163,23 +163,18 @@ int main() {
 
 					} while (fileDownloaded < fileSize);
 
-
 					cout << "Telechargement termine!" << endl;
-
 					file.close();
-
-					ifstream test(path, ios::binary);
 
 					// Affichage du coutenu de "output.txt" dans la console client
 
-					if (test.is_open()) {
-						cout << "Ceci est le contenu du fichier " << endl;
-						cout << test.rdbuf() << endl;
-					}
+					ifstream outputFile(path, ios::binary);
 
-					test.close();
+					if (outputFile.is_open())
+						cout << outputFile.rdbuf() << endl;
+					outputFile.close();
+
 				}
-
 				else
 					cout << errorMsg << "Erreur dans l'ouverture du fichier" << endl;
 			}

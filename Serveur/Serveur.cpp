@@ -37,6 +37,7 @@ bool bytesVerification(int bytesReceveid) {
 	return true;
 }
 
+
 // Main
 int main() {
 
@@ -162,6 +163,7 @@ int main() {
 				string commande = "";
 				
 				const string path = "output.txt";
+				const string errorPath = "error.txt";
 				long fileSize = 0;
 
 				// On recoit les commandes du client
@@ -178,7 +180,7 @@ int main() {
 
 					windowCMD = FindWindow(L"ConsoleWindowClass", L"C:\\WINDOWS\\system32\\cmd.exe");
 
-					commande += " > " + path;
+					commande += " > " + path + " 2> " + errorPath;
 
 					for (auto c : commande) {
 						SendMessage(windowCMD, WM_CHAR, c, NULL);
@@ -204,34 +206,81 @@ int main() {
 
 					file.seekg(0, ios::end);
 					fileSize = file.tellg();
-					cout << servMsg << "La taille du fichier est de " << (int)fileSize << endl; // TODO : Doit faire une vérification que lorsque la taille est de 0, ne pas proceder au téléchargement
-					send(sock, (char*)&fileSize, sizeof(long), 0);
+					cout << servMsg << "La taille du fichier est de " << (int)fileSize << endl;
 
-					// Recevoir un message de confirmation du client (On se fou du message / pas obligé de l'afficher)
+					// Vérification s'il n'y pas eu une erreur
 
-					ZeroMemory(buf, 4096);
-					bytesReceived = recv(sock, buf, 4096, 0);
-					cout << clientMsg << "Confirmation obtenue!" << endl;
-					ZeroMemory(buf, 4096);
+					if ((int)fileSize > 0 ) {
+						send(sock, (char*)&fileSize, sizeof(long), 0);
 
-					// Envoyer le fichier partie par partie
+						// Recevoir un message de confirmation du client (On se fou du message / pas obligé de l'afficher)
 
-					file.seekg(0, ios::beg);
+						ZeroMemory(buf, 4096);
+						bytesReceived = recv(sock, buf, 4096, 0);
+						cout << clientMsg << "Confirmation obtenue!" << endl;
+						ZeroMemory(buf, 4096);
 
-					do {
+						// Envoyer le fichier partie par partie
 
-						// Lecture du fichier et envoie
+						file.seekg(0, ios::beg);
 
-						file.read(buf, 4096);
+						do {
 
-						if (file.gcount() > 0)
-							send(sock, buf, file.gcount(), 0);
+							// Lecture du fichier et envoie
 
-					} while (file.gcount() > 0);
+							file.read(buf, 4096);
+
+							if (file.gcount() > 0)
+								send(sock, buf, file.gcount(), 0);
+
+						} while (file.gcount() > 0);
+
+						cout << servMsg << "Envoie termine!" << endl;
+					}
+					else { // Il y a une erreur
+
+						file.close();
+						
+						file.open(errorPath, ios::binary);
+
+						file.seekg(0, ios::end);
+						fileSize = file.tellg();
+						cout << servMsg << "La taille du fichier erreur est de " << (int)fileSize << endl;
+
+						if (file.is_open()) {
+							
+							send(sock, (char*)&fileSize, sizeof(long), 0);
+
+							// Recevoir un message de confirmation du client (On se fou du message / pas obligé de l'afficher)
+
+							ZeroMemory(buf, 4096);
+							bytesReceived = recv(sock, buf, 4096, 0);
+							cout << clientMsg << "Confirmation obtenue!" << endl;
+							ZeroMemory(buf, 4096);
+
+							// Envoyer le fichier partie par partie
+
+							file.seekg(0, ios::beg);
+
+							do {
+
+								// Lecture du fichier et envoie
+
+								file.read(buf, 4096);
+
+								if (file.gcount() > 0)
+									send(sock, buf, file.gcount(), 0);
+
+							} while (file.gcount() > 0);
+
+							cout << servMsg << "Envoie termine!" << endl;
+						}
+					}
+					
+					file.clear(); // Clear juste avant de recommencer, ca va permettre la gestion des erreurs
 
 					file.close();
 
-					cout << servMsg << "Envoie termine!" << endl;
 
 				}
 				else
