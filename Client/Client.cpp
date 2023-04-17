@@ -35,6 +35,7 @@ int main() {
 	const string connectionMsg = "<CONNECTION> ";
 	const string fileMsg = "<FILE> ";
 	const string errorMsg = "<ERROR> ";
+	const string servMsg = "<SERVER> ";
 	const string clientMsg = "<CLIENT> ";
 
 	// Adresse du serveur local
@@ -89,14 +90,12 @@ int main() {
 
 	char buf[4096];
 	int bytesReceived = 0;
-	string msgReceived = "";
 
 	string userInput = "";
 
 	string confirmation = "OK";
 
 	long fileSize = 0;
-	string fileName = "";
 	long fileDownloaded = 0;
 
 	const string path = "output.txt";
@@ -108,13 +107,13 @@ int main() {
 
 	if (bytesVerification(bytesReceived)) {
 
-		cout << string(buf, 0, bytesReceived) << endl;
+		cout << servMsg << string(buf, 0, bytesReceived) << endl;
 
 		// �change commande / Txt
 
 		while (true) {
 
-			cout << clientMsg << "Veuillez entrer une commande :" << endl;
+			cout << clientMsg << "Veuillez entrer une commande : ";
 			cin >> userInput; // TODO : Faire une v�rification > 0 et faire attention aux espaces
 
 			ZeroMemory(buf, 4096);
@@ -124,8 +123,8 @@ int main() {
 
 			ZeroMemory(buf, 4096);
 			bytesReceived = recv(clientSocket, (char*)&fileSize, sizeof(long), 0);
-			cout << "La taille du fichier est de " << fileSize << endl;
-			if (bytesVerification(bytesReceived)) {} // TODO : mieux implémenter / cause une erreur quand on recoit une taille 0 quand le dossier est vide ou la commande n'existait pas. D'ailleurs, si on se trompe de commande au début, lorsque l'on relance le programme ca ne fonctionne plus. Maias au prochain coup ca fonctionnne.
+			cout << servMsg <<"La taille du fichier est de " << fileSize << endl;
+			// TODO : implémenter verifBytes / cause une erreur quand on recoit une taille 0 quand le dossier est vide ou la commande n'existait pas. D'ailleurs, si on se trompe de commande au début, lorsque l'on relance le programme ca ne fonctionne plus. Maias au prochain coup ca fonctionnne.
 
 			// Envoie d'un message de confirmation
 
@@ -141,6 +140,8 @@ int main() {
 				ofstream file(path, ios::binary | ios::trunc);
 
 				if (file.is_open()) {
+
+					file.clear();
 
 					do {
 
@@ -165,16 +166,22 @@ int main() {
 
 					cout << "Telechargement termine!" << endl;
 
+					file.close();
+
+					ifstream test(path, ios::binary);
+
 					// Affichage du coutenu de "output.txt" dans la console client
 
-					if (file.is_open())
-						cout << file.rdbuf() << endl;
+					if (test.is_open()) {
+						cout << "Ceci est le contenu du fichier " << endl;
+						cout << test.rdbuf() << endl;
+					}
 
-					file.close();
+					test.close();
 				}
 
 				else
-					cout << "Erreur dans l'ouverture du fichier" << endl;
+					cout << errorMsg << "Erreur dans l'ouverture du fichier" << endl;
 			}
 		}
 	}

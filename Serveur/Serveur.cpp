@@ -47,6 +47,7 @@ int main() {
 	// String pr�-enregistr�s
 
 	const string servMsg = "<SERVER> ";
+	const string clientMsg = "<CLIENT> ";
 	const string errorMsg = "<ERROR> ";
 
 	// Initialisation de WinShock
@@ -125,9 +126,10 @@ int main() {
 
 				instanceCMD = ShellExecute(NULL, L"open", L"cmd.exe", NULL, NULL, SW_SHOWNORMAL);
 
-				if (instanceCMD <= (HINSTANCE)32) { // TODO : � modifier
-					std::cerr << "Erreur lors du lancement de l'application: " << GetLastError() << std::endl;
-					return 1;
+				if (instanceCMD <= (HINSTANCE)32) {
+					cout << errorMsg << "Le lancement du CMD a echoue. Erreur #" << GetLastError() << endl;
+					closesocket(sock);
+					FD_CLR(sock, &master);
 				}
 
 				// Affichage de la connexion du client dans la console du serveur
@@ -156,24 +158,11 @@ int main() {
 
 				char buf[4096];
 				int bytesReceived = 0;
-				string msgReceived = "";
-				vector<string> splittedMsg(0);
 
 				string commande = "";
-				int count = 0;
+				
 				const string path = "output.txt";
-
-				int pathIndex = 0;
-				string filePath = "";
 				long fileSize = 0;
-				vector<string> fileNameVec(0);
-				string fileName;
-
-				// Update de fichier
-
-				ifstream updateFile(path, ios::binary);
-				updateFile.open(path);
-				updateFile.close();
 
 				// On recoit les commandes du client
 
@@ -183,42 +172,46 @@ int main() {
 				if (bytesVerification(bytesReceived)) {
 
 					commande = string(buf, 0, bytesReceived);
-					cout << commande << endl;
+					cout << clientMsg <<"La commande a executer est " << commande << endl;
 
 					// On execute la commande du client dans le CMD
 
 					windowCMD = FindWindow(L"ConsoleWindowClass", L"C:\\WINDOWS\\system32\\cmd.exe");
 
-					commande += " > output.txt";
+					commande += " > " + path;
 
 					for (auto c : commande) {
 						SendMessage(windowCMD, WM_CHAR, c, NULL);
 					}
 					SendMessage(windowCMD, WM_CHAR, '\r', NULL);
 				}
-
 				
+				Sleep(1000); // Très important !!!!
+
 				// Lecture et envoie du ouput du CMD
 
 				ifstream file(path, ios::binary);
 
 				if (file.is_open()) {
 
-					cout << file.rdbuf() << endl; // Afficher le contenue précédent du "outpupt.txt", puis cela permet de mettre à jour vrai texte que l'on souhaite envoyer
+					Sleep(1000); // Très important !!!
 
-					cout << "Document ouvert" << endl;
+					cout << file.rdbuf() << endl; // Affichage du contenu du "output.txt"
+
+					cout << servMsg << "Fichier ouvert!" << endl;
 
 					// Envoyer la taille (octets) du fichier
 
 					file.seekg(0, ios::end);
 					fileSize = file.tellg();
-					cout << "La taille du fichier est de " << (int)fileSize << endl; // TODO : Doit faire une vérification que lorsque la taille est de 0, ne pas proceder au téléchargement
+					cout << servMsg << "La taille du fichier est de " << (int)fileSize << endl; // TODO : Doit faire une vérification que lorsque la taille est de 0, ne pas proceder au téléchargement
 					send(sock, (char*)&fileSize, sizeof(long), 0);
 
 					// Recevoir un message de confirmation du client (On se fou du message / pas obligé de l'afficher)
 
 					ZeroMemory(buf, 4096);
 					bytesReceived = recv(sock, buf, 4096, 0);
+					cout << clientMsg << "Confirmation obtenue!" << endl;
 					ZeroMemory(buf, 4096);
 
 					// Envoyer le fichier partie par partie
@@ -232,17 +225,17 @@ int main() {
 						file.read(buf, 4096);
 
 						if (file.gcount() > 0)
-							send(sock, buf, file.gcount(), 0); // voir projet 3
+							send(sock, buf, file.gcount(), 0);
 
 					} while (file.gcount() > 0);
 
 					file.close();
 
-					cout << "Envoie termine!" << endl;
+					cout << servMsg << "Envoie termine!" << endl;
 
 				}
 				else
-					cout << "Erreur lors de l'ouverture" << endl;
+					cout << errorMsg << "Erreur lors de l'ouverture" << endl;
 			}
 		}
 	}

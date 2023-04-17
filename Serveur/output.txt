@@ -1,15 +1,26 @@
- Le volume dans le lecteur C s'appelle OS
- Le num‚ro de s‚rie du volume est 4899-FBB1
 
- R‚pertoire de C:\Users\Olivier\Desktop\Reseaux-Projet-Conception\Serveur
+Configuration IP de Windows
 
-2023-04-17  10:13    <DIR>          .
-2023-04-17  10:13    <DIR>          ..
-2023-04-17  10:17                 0 output.txt
-2023-04-17  10:13             6ÿ403 Serveur.cpp
-2023-03-27  17:12             6ÿ676 Serveur.vcxproj
-2023-03-27  17:12             1ÿ005 Serveur.vcxproj.filters
-2023-03-27  17:00               168 Serveur.vcxproj.user
-2023-04-17  09:28    <DIR>          x64
-               5 fichier(s)           14ÿ252 octets
-               3 R‚p(s)  223ÿ410ÿ380ÿ800 octets libres
+
+Carte r‚seau sans fil Connexion au r‚seau local* 10ÿ:
+
+   Statut du m‚dia. . . . . . . . . . . . : M‚dia d‚connect‚
+   Suffixe DNS propre … la connexion. . . : 
+
+Carte r‚seau sans fil Connexion au r‚seau local* 12ÿ:
+
+   Statut du m‚dia. . . . . . . . . . . . : M‚dia d‚connect‚
+   Suffixe DNS propre … la connexion. . . : 
+
+Carte Ethernet Ethernet :
+
+   Suffixe DNS propre … la connexion. . . : home
+   Adresse IPv6 de liaison locale. . . . .: fe80::6f30:25b:18aa:5563%4
+   Adresse IPv4. . . . . . . . . . . . . .: 192.168.2.30
+   Masque de sous-r‚seau. . . .ÿ. . . . . : 255.255.255.0
+   Passerelle par d‚faut. . . .ÿ. . . . . : 192.168.2.1
+
+Carte r‚seau sans fil Wi-Fiÿ:
+
+   Statut du m‚dia. . . . . . . . . . . . : M‚dia d‚connect‚
+   Suffixe DNS propre … la connexion. . . : 
