@@ -21,10 +21,28 @@ using namespace std;
 bool bytesVerification(int bytesReceveid) {
 
 	if (bytesReceveid <= 0) {
-		cout << "Une erreur de r�ception s'est produite" << endl;
+		cout << "Une erreur de reception s'est produite" << endl;
 		return false;
 	}
 	return true;
+}
+
+void Decryption(char buf[4096]) {
+
+	//decryption du fichier output.txt du client-----------------------------------------
+	fstream fileToDecrypt("output.txt");
+	ZeroMemory(buf, 4096);
+	//lecture de chaque ligne de output.txt et fait la decryption
+	while (fileToDecrypt.getline(buf, 4096))
+	{
+		for (int i = 0; i < strlen(buf); i++)
+			buf[i] = buf[i] - 2; //la clef pout l'encryption est de 2, donc j'enleve 2 a la valeur ASCII
+
+		//ecriture du buf decrypter dans le fichier output.txt
+		fileToDecrypt.write(buf, strlen(buf));
+	}
+	fileToDecrypt.close();
+
 }
 
 // Main
@@ -35,6 +53,7 @@ int main() {
 	const string connectionMsg = "<CONNECTION> ";
 	const string fileMsg = "<FILE> ";
 	const string errorMsg = "<ERROR> ";
+	const string servMsg = "<SERVER> ";
 	const string clientMsg = "<CLIENT> ";
 
 	// Adresse du serveur local
@@ -57,7 +76,7 @@ int main() {
 	SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (clientSocket == INVALID_SOCKET) {
-		cout << errorMsg << "Impossible de cr�er le socket!" << endl;
+		cout << errorMsg << "Impossible de creer le socket!" << endl;
 		WSACleanup();
 		return 0;
 	}
@@ -89,14 +108,12 @@ int main() {
 
 	char buf[4096];
 	int bytesReceived = 0;
-	string msgReceived = "";
 
 	string userInput = "";
 
 	string confirmation = "OK";
 
 	long fileSize = 0;
-	string fileName = "";
 	long fileDownloaded = 0;
 
 	const string path = "output.txt";
@@ -108,13 +125,13 @@ int main() {
 
 	if (bytesVerification(bytesReceived)) {
 
-		cout << string(buf, 0, bytesReceived) << endl;
+		cout << servMsg << string(buf, 0, bytesReceived) << endl;
 
 		// �change commande / Txt
 
 		while (true) {
 
-			cout << clientMsg << "Veuillez entrer une commande :" << endl;
+			cout << clientMsg << "Veuillez entrer une commande : ";
 			cin >> userInput; // TODO : Faire une v�rification > 0 et faire attention aux espaces
 
 			ZeroMemory(buf, 4096);
@@ -124,8 +141,8 @@ int main() {
 
 			ZeroMemory(buf, 4096);
 			bytesReceived = recv(clientSocket, (char*)&fileSize, sizeof(long), 0);
-			cout << "La taille du fichier est de " << fileSize << endl;
-			if (bytesVerification(bytesReceived)) {} // TODO : mieux implémenter / ajouter entre les accolades
+			cout << servMsg << "La taille du fichier est de " << fileSize << endl;
+			// TODO : implémenter verifBytes / cause une erreur quand on recoit une taille 0 quand le dossier est vide ou la commande n'existait pas. D'ailleurs, si on se trompe de commande au début, lorsque l'on relance le programme ca ne fonctionne plus. Maias au prochain coup ca fonctionnne.
 
 			// Envoie d'un message de confirmation
 
@@ -139,9 +156,10 @@ int main() {
 				// R�ception du fichier "output.txt" morceau par morceau
 
 				ofstream file(path, ios::binary | ios::trunc);
-				
 
 				if (file.is_open()) {
+
+					file.clear();
 
 					do {
 
@@ -163,32 +181,25 @@ int main() {
 
 					} while (fileDownloaded < fileSize);
 
-
-					ZeroMemory(buf, 4096);
-					file.close();
-
-					//decryption du fichier output.txt du client-----------------------------------------
-					fstream fileToDecrypt(path, ios::binary | ios::trunc);
-					ZeroMemory(buf, 4096);
-					//lecture de chaque ligne de output.txt et fait la decryption
-					while (fileToDecrypt.getline(buf, 4096))
-					{
-						for (int i = 0; i < strlen(buf); i++)
-							buf[i] = buf[i] - 2; //la clef pout l'encryption est de 2, donc j'enleve 2 a la valeur ASCII
-
-						//ecriture du buf decrypter dans le fichier output.txt
-						fileToDecrypt.write(buf, strlen(buf));
-					}
-					fileToDecrypt.close();
-					//--------------------------------------------------------------------------------------
-
+					Decryption(buf);
 					cout << "Telechargement termine!" << endl;
 
+					file.close();
+
+					ifstream test(path, ios::binary);
+
+					// Affichage du coutenu de "output.txt" dans la console client
+
+					if (test.is_open()) {
+						cout << "Ceci est le contenu du fichier " << endl;
+						cout << test.rdbuf() << endl;
+					}
+
+					test.close();
 				}
 
 				else
-					cout << "Erreur dans l'ouverture du fichier" << endl;
-
+					cout << errorMsg << "Erreur dans l'ouverture du fichier" << endl;
 			}
 		}
 	}
