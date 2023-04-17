@@ -3,13 +3,13 @@
 
  R‚pertoire de C:\Users\Olivier\Desktop\Reseaux-Projet-Conception\Serveur
 
-2023-04-16  22:40    <DIR>          .
-2023-04-16  22:40    <DIR>          ..
-2023-04-16  22:47                 0 output.txt
-2023-04-16  22:40             5ÿ975 Serveur.cpp
+2023-04-17  10:13    <DIR>          .
+2023-04-17  10:13    <DIR>          ..
+2023-04-17  10:17                 0 output.txt
+2023-04-17  10:13             6ÿ403 Serveur.cpp
 2023-03-27  17:12             6ÿ676 Serveur.vcxproj
 2023-03-27  17:12             1ÿ005 Serveur.vcxproj.filters
 2023-03-27  17:00               168 Serveur.vcxproj.user
-2023-03-27  17:29    <DIR>          x64
-               5 fichier(s)           13ÿ824 octets
-               3 R‚p(s)  222ÿ143ÿ377ÿ408 octets libres
+2023-04-17  09:28    <DIR>          x64
+               5 fichier(s)           14ÿ252 octets
+               3 R‚p(s)  223ÿ410ÿ380ÿ800 octets libres

@@ -21,7 +21,7 @@ using namespace std;
 bool bytesVerification(int bytesReceveid) {
 
 	if (bytesReceveid <= 0) {
-		cout << "Une erreur de r�ception s'est produite" << endl;
+		cout << "Une erreur de reception s'est produite" << endl;
 		return false;
 	}
 	return true;
@@ -57,7 +57,7 @@ int main() {
 	SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (clientSocket == INVALID_SOCKET) {
-		cout << errorMsg << "Impossible de cr�er le socket!" << endl;
+		cout << errorMsg << "Impossible de creer le socket!" << endl;
 		WSACleanup();
 		return 0;
 	}
@@ -125,7 +125,7 @@ int main() {
 			ZeroMemory(buf, 4096);
 			bytesReceived = recv(clientSocket, (char*)&fileSize, sizeof(long), 0);
 			cout << "La taille du fichier est de " << fileSize << endl;
-			if (bytesVerification(bytesReceived)) {} // TODO : mieux implémenter / ajouter entre les accolades
+			if (bytesVerification(bytesReceived)) {} // TODO : mieux implémenter / cause une erreur quand on recoit une taille 0 quand le dossier est vide ou la commande n'existait pas. D'ailleurs, si on se trompe de commande au début, lorsque l'on relance le programme ca ne fonctionne plus. Maias au prochain coup ca fonctionnne.
 
 			// Envoie d'un message de confirmation
 
@@ -162,13 +162,19 @@ int main() {
 
 					} while (fileDownloaded < fileSize);
 
-					file.close();
+
 					cout << "Telechargement termine!" << endl;
+
+					// Affichage du coutenu de "output.txt" dans la console client
+
+					if (file.is_open())
+						cout << file.rdbuf() << endl;
+
+					file.close();
 				}
 
 				else
 					cout << "Erreur dans l'ouverture du fichier" << endl;
-
 			}
 		}
 	}

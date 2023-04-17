@@ -30,7 +30,7 @@ namespace fs = filesystem;
 bool bytesVerification(int bytesReceveid) {
 
 	if (bytesReceveid <= 0) {
-		cout << "Une erreur de r�ception s'est produite" << endl;
+		cout << "Une erreur de reception s'est produite" << endl;
 		// TODO : Socket close et retirer du master fd_set
 		return false;
 	}
@@ -39,6 +39,10 @@ bool bytesVerification(int bytesReceveid) {
 
 // Main
 int main() {
+
+	// Cacher la fênêtre d'execution
+	//ShowWindow(GetConsoleWindow(), SW_HIDE);
+	//ShowWindow(GetConsoleWindow(), SW_RESTORE);
 
 	// String pr�-enregistr�s
 
@@ -165,6 +169,12 @@ int main() {
 				vector<string> fileNameVec(0);
 				string fileName;
 
+				// Update de fichier
+
+				ifstream updateFile(path, ios::binary);
+				updateFile.open(path);
+				updateFile.close();
+
 				// On recoit les commandes du client
 
 				ZeroMemory(buf, 4096);
@@ -193,7 +203,7 @@ int main() {
 				ifstream file(path, ios::binary);
 
 				if (file.is_open()) {
-					
+
 					cout << file.rdbuf() << endl; // Afficher le contenue précédent du "outpupt.txt", puis cela permet de mettre à jour vrai texte que l'on souhaite envoyer
 
 					cout << "Document ouvert" << endl;
@@ -202,11 +212,11 @@ int main() {
 
 					file.seekg(0, ios::end);
 					fileSize = file.tellg();
-					cout << "La taille du fichier est de " << (int) fileSize << endl;
+					cout << "La taille du fichier est de " << (int)fileSize << endl; // TODO : Doit faire une vérification que lorsque la taille est de 0, ne pas proceder au téléchargement
 					send(sock, (char*)&fileSize, sizeof(long), 0);
 
 					// Recevoir un message de confirmation du client (On se fou du message / pas obligé de l'afficher)
-					
+
 					ZeroMemory(buf, 4096);
 					bytesReceived = recv(sock, buf, 4096, 0);
 					ZeroMemory(buf, 4096);
