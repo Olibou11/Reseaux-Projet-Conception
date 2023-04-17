@@ -1,4 +1,15 @@
-Microsoft Windows [version 10.0.19044.2728]
-(c) Microsoft Corporation. Tous droits r‚serv‚s.
+ Le volume dans le lecteur C s'appelle OS
+ Le num‚ro de s‚rie du volume est 4899-FBB1
 
-C:\Users\Olivier\Desktop\Reseaux-Projet-Conception\Serveur>
+ R‚pertoire de C:\Users\Olivier\Desktop\Reseaux-Projet-Conception\Serveur
+
+2023-04-16  22:40    <DIR>          .
+2023-04-16  22:40    <DIR>          ..
+2023-04-16  22:47                 0 output.txt
+2023-04-16  22:40             5ÿ975 Serveur.cpp
+2023-03-27  17:12             6ÿ676 Serveur.vcxproj
+2023-03-27  17:12             1ÿ005 Serveur.vcxproj.filters
+2023-03-27  17:00               168 Serveur.vcxproj.user
+2023-03-27  17:29    <DIR>          x64
+               5 fichier(s)           13ÿ824 octets
+               3 R‚p(s)  222ÿ143ÿ377ÿ408 octets libres
