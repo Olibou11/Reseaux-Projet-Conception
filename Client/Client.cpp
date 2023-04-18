@@ -27,7 +27,7 @@ const string clientMsg = "<CLIENT> ";
 
 // Méthodes supplémentaires
 
-bool bytesVerification(int bytesReceived);
+bool bytesVerification(int bytesReceived, SOCKET clientSocket);
 
 
 // Main
@@ -104,11 +104,11 @@ int main() {
 	ZeroMemory(buf, 4096);
 	bytesReceived = recv(clientSocket, buf, 4096, 0);
 
-	if (bytesVerification(bytesReceived)) {
+	if (bytesVerification(bytesReceived, clientSocket)) {
 
 		cout << servMsg << string(buf, 0, bytesReceived) << endl;
 
-		// �change commande / .txt
+		// échange commande / .txt
 
 		while (true) {
 
@@ -122,16 +122,17 @@ int main() {
 
 			ZeroMemory(buf, 4096);
 			bytesReceived = recv(clientSocket, (char*)&fileSize, sizeof(long), 0);
-			cout << servMsg <<"La taille du fichier est de " << fileSize << " bytes!" << endl;
+			
+			if (bytesVerification(bytesReceived, clientSocket)) {
+				
+				cout << servMsg << "La taille du fichier est de " << fileSize << " bytes!" << endl;
 
-			// Envoie d'un message de confirmation
+				// Envoie d'un message de confirmation
 
-			ZeroMemory(buf, 4096);
-			send(clientSocket, confirmation.c_str(), (int)confirmation.size() + 1, 0);
+				ZeroMemory(buf, 4096);
+				send(clientSocket, confirmation.c_str(), (int)confirmation.size() + 1, 0);
 
-			// Réception du fichier "output.txt" morceaux par morceaux
-
-			if (bytesVerification(bytesReceived)) {
+				// Réception du fichier "output.txt" morceaux par morceaux
 
 				file.open(path, ios::binary | ios::trunc);
 
@@ -183,11 +184,13 @@ int main() {
 	WSACleanup();
 }
 
-bool bytesVerification(int bytesReceived) {
+bool bytesVerification(int bytesReceived, SOCKET clientSocket) {
 
 	if (bytesReceived <= 0) {
-		cout << "Une erreur de reception s'est produite" << endl;
-		return false;
+		cout << errorMsg << "Une erreur de reception s'est produite!" << endl;
+		closesocket(clientSocket);
+		WSACleanup();
+		return 0;
 	}
 	return true;
 }

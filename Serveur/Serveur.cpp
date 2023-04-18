@@ -32,8 +32,8 @@ const string errorMsg = "<ERROR> ";
 
 // Méthodes supplémentaires
 
-bool bytesVerification(int bytesReceveid);
-void sendFileToClient(string path, SOCKET sock);
+bool bytesVerification(int bytesReceveid, SOCKET sock, fd_set& master);
+void sendFileToClient(string path, SOCKET sock, fd_set& master);
 
 // Main
 
@@ -165,7 +165,7 @@ int main() {
 				ZeroMemory(buf, 4096);
 				bytesReceived = recv(sock, buf, 4096, 0);
 
-				if (bytesVerification(bytesReceived)) {
+				if (bytesVerification(bytesReceived, sock, master)) {
 
 					// Transformation de la commande et affichage
 
@@ -199,9 +199,9 @@ int main() {
 					ZeroMemory(buf, 4096);
 
 					if (fileSize > 0) // La commande est valide
-						sendFileToClient(path, sock);
+						sendFileToClient(path, sock, master);
 					else
-						sendFileToClient(errorPath, sock);
+						sendFileToClient(errorPath, sock, master);
 				}
 				else
 					cout << errorMsg << "Erreur lors de l'ouverture" << endl;
@@ -214,17 +214,18 @@ int main() {
 }
 
 
-bool bytesVerification(int bytesReceveid) {
+bool bytesVerification(int bytesReceveid, SOCKET sock, fd_set& master) {
 
 	if (bytesReceveid <= 0) {
 		cout << "Une erreur de reception s'est produite" << endl;
-		// TODO : Socket close et retirer du master fd_set
-		return false;
+		closesocket(sock);
+		FD_CLR(sock, &master);
+		return 0;
 	}
 	return true;
 }
 
-void sendFileToClient(string path, SOCKET sock) {
+void sendFileToClient(string path, SOCKET sock, fd_set& master) {
 
 	// Variables
 
@@ -246,7 +247,7 @@ void sendFileToClient(string path, SOCKET sock) {
 	ZeroMemory(buf, 4096);
 	bytesReceived = recv(sock, buf, 4096, 0);
 
-	if (bytesVerification(bytesReceived)) {
+	if (bytesVerification(bytesReceived, sock, master)) {
 
 		cout << clientMsg << "Confirmation obtenue!" << endl;
 
