@@ -34,6 +34,7 @@ const string errorMsg = "<ERROR> ";
 
 bool bytesVerification(int bytesReceveid, SOCKET sock, fd_set& master);
 void sendFileToClient(string path, SOCKET sock, fd_set& master);
+void encryption(string path);
 
 // Main
 
@@ -203,8 +204,6 @@ int main() {
 					else
 						sendFileToClient(errorPath, sock, master);
 				}
-				else
-					cout << errorMsg << "Erreur lors de l'ouverture" << endl;
 			}
 		}
 	}
@@ -226,6 +225,8 @@ bool bytesVerification(int bytesReceveid, SOCKET sock, fd_set& master) {
 }
 
 void sendFileToClient(string path, SOCKET sock, fd_set& master) {
+
+	encryption(path);
 
 	// Variables
 
@@ -270,5 +271,50 @@ void sendFileToClient(string path, SOCKET sock, fd_set& master) {
 
 		file.clear();
 		file.close();
+	}
+}
+
+void encryption(string path) {
+
+	cout << "salut" << endl;
+
+	char buf[4096];
+	ZeroMemory(buf, 4096);
+
+	string line = "";
+
+	string t = "";
+
+	string file = "";
+
+	fstream fileToEncrypt(path, ios::in | ios::out);
+	
+	ofstream of("test.txt", ios::in | ios::out);
+
+	of.clear();
+
+	if (fileToEncrypt.is_open()) {
+
+		//lecture de chaque ligne de output.txt et fait l'encryption
+
+		while (getline(fileToEncrypt, line)) {
+			for (char c : line) {
+				c += 2;
+				string tt = string(1, c);
+				t.append(tt);
+			}
+			t.append("\n");
+			of.write(t.c_str(), t.size());
+			t.clear();
+		}
+		fileToEncrypt.close();
+		of.close();
+
+
+		/*
+		if (of.is_open()) {
+			cout << "salut2" << endl;
+			of.write(file.c_str(), file.size());
+		}*/
 	}
 }
