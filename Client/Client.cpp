@@ -17,6 +17,18 @@
 // Namespace
 using namespace std;
 
+// String pré-enregistrés
+
+const string connectionMsg = "<CONNECTION> ";
+const string fileMsg = "<FILE> ";
+const string errorMsg = "<ERROR> ";
+const string servMsg = "<SERVER> ";
+const string clientMsg = "<CLIENT> ";
+
+// Méthodes supplémentaires
+
+
+
 // M�thode de v�rification des bytesRecv
 bool bytesVerification(int bytesReceveid) {
 
@@ -31,7 +43,7 @@ void Decryption(char buf[4096], string fileName) {
 
 	//decryption du fichier output.txt du client
 	fstream fileToDecrypt(fileName, ios::in | ios::out);
-	
+
 	if (!fileToDecrypt.is_open()) {
 		cerr << "Error: Unable to open file!" << endl;
 		return;
@@ -52,15 +64,8 @@ void Decryption(char buf[4096], string fileName) {
 }
 
 // Main
+
 int main() {
-
-	// String pr�-enregistr�s
-
-	const string connectionMsg = "<CONNECTION> ";
-	const string fileMsg = "<FILE> ";
-	const string errorMsg = "<ERROR> ";
-	const string servMsg = "<SERVER> ";
-	const string clientMsg = "<CLIENT> ";
 
 	// Adresse du serveur local
 	string ipAddress = "127.0.0.1";
@@ -122,6 +127,9 @@ int main() {
 	long fileSize = 0;
 	long fileDownloaded = 0;
 
+	ofstream file;
+	ifstream outputFile;
+
 	const string path = "output.txt";
 
 	// R�ception du message de confirmation de connexion
@@ -133,7 +141,7 @@ int main() {
 
 		cout << servMsg << string(buf, 0, bytesReceived) << endl;
 
-		// �change commande / Txt
+		// �change commande / .txt
 
 		while (true) {
 
@@ -147,21 +155,18 @@ int main() {
 
 			ZeroMemory(buf, 4096);
 			bytesReceived = recv(clientSocket, (char*)&fileSize, sizeof(long), 0);
-			cout << servMsg << "La taille du fichier est de " << fileSize << endl;
-			// TODO : implémenter verifBytes / cause une erreur quand on recoit une taille 0 quand le dossier est vide ou la commande n'existait pas. D'ailleurs, si on se trompe de commande au début, lorsque l'on relance le programme ca ne fonctionne plus. Maias au prochain coup ca fonctionnne.
+			cout << servMsg << "La taille du fichier est de " << fileSize << " bytes!" << endl;
 
 			// Envoie d'un message de confirmation
 
 			ZeroMemory(buf, 4096);
 			send(clientSocket, confirmation.c_str(), (int)confirmation.size() + 1, 0);
 
-			// - 
+			// Réception du fichier "output.txt" morceaux par morceaux
 
 			if (bytesVerification(bytesReceived)) {
 
-				// R�ception du fichier "output.txt" morceau par morceau
-
-				ofstream file(path, ios::binary | ios::trunc);
+				file.open(path, ios::binary | ios::trunc);
 
 				if (file.is_open()) {
 
@@ -189,21 +194,17 @@ int main() {
 
 					Decryption(buf, path);
 					cout << "Telechargement termine!" << endl;
-
 					file.close();
-
-					ifstream test(path, ios::binary);
 
 					// Affichage du coutenu de "output.txt" dans la console client
 
-					if (test.is_open()) {
-						cout << "Ceci est le contenu du fichier " << endl;
-						cout << test.rdbuf() << endl;
-					}
+					outputFile.open(path, ios::binary);
 
-					test.close();
+					if (outputFile.is_open())
+						cout << outputFile.rdbuf() << endl;
+					outputFile.close();
+
 				}
-
 				else
 					cout << errorMsg << "Erreur dans l'ouverture du fichier" << endl;
 			}
@@ -215,3 +216,4 @@ int main() {
 	closesocket(clientSocket);
 	WSACleanup();
 }
+
