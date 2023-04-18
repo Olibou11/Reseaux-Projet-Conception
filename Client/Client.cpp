@@ -4,7 +4,7 @@
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-// Importations initiales
+// Importations
 
 #include <iostream>
 #include <string>
@@ -17,26 +17,22 @@
 // Namespace
 using namespace std;
 
-// M�thode de v�rification des bytesRecv
-bool bytesVerification(int bytesReceveid) {
+// String pré-enregistrés
 
-	if (bytesReceveid <= 0) {
-		cout << "Une erreur de reception s'est produite" << endl;
-		return false;
-	}
-	return true;
-}
+const string connectionMsg = "<CONNECTION> ";
+const string fileMsg = "<FILE> ";
+const string errorMsg = "<ERROR> ";
+const string servMsg = "<SERVER> ";
+const string clientMsg = "<CLIENT> ";
+
+// Méthodes supplémentaires
+
+bool bytesVerification(int bytesReceived);
+
 
 // Main
+
 int main() {
-
-	// String pr�-enregistr�s
-
-	const string connectionMsg = "<CONNECTION> ";
-	const string fileMsg = "<FILE> ";
-	const string errorMsg = "<ERROR> ";
-	const string servMsg = "<SERVER> ";
-	const string clientMsg = "<CLIENT> ";
 
 	// Adresse du serveur local
 	string ipAddress = "127.0.0.1";
@@ -98,6 +94,9 @@ int main() {
 	long fileSize = 0;
 	long fileDownloaded = 0;
 
+	ofstream file;
+	ifstream outputFile;
+
 	const string path = "output.txt";
 
 	// R�ception du message de confirmation de connexion
@@ -109,7 +108,7 @@ int main() {
 
 		cout << servMsg << string(buf, 0, bytesReceived) << endl;
 
-		// �change commande / Txt
+		// �change commande / .txt
 
 		while (true) {
 
@@ -123,21 +122,18 @@ int main() {
 
 			ZeroMemory(buf, 4096);
 			bytesReceived = recv(clientSocket, (char*)&fileSize, sizeof(long), 0);
-			cout << servMsg <<"La taille du fichier est de " << fileSize << endl;
-			// TODO : implémenter verifBytes / cause une erreur quand on recoit une taille 0 quand le dossier est vide ou la commande n'existait pas. D'ailleurs, si on se trompe de commande au début, lorsque l'on relance le programme ca ne fonctionne plus. Maias au prochain coup ca fonctionnne.
+			cout << servMsg <<"La taille du fichier est de " << fileSize << " bytes!" << endl;
 
 			// Envoie d'un message de confirmation
 
 			ZeroMemory(buf, 4096);
 			send(clientSocket, confirmation.c_str(), (int)confirmation.size() + 1, 0);
 
-			// - 
+			// Réception du fichier "output.txt" morceaux par morceaux
 
 			if (bytesVerification(bytesReceived)) {
 
-				// R�ception du fichier "output.txt" morceau par morceau
-
-				ofstream file(path, ios::binary | ios::trunc);
+				file.open(path, ios::binary | ios::trunc);
 
 				if (file.is_open()) {
 
@@ -168,7 +164,7 @@ int main() {
 
 					// Affichage du coutenu de "output.txt" dans la console client
 
-					ifstream outputFile(path, ios::binary);
+					outputFile.open(path, ios::binary);
 
 					if (outputFile.is_open())
 						cout << outputFile.rdbuf() << endl;
@@ -185,4 +181,13 @@ int main() {
 
 	closesocket(clientSocket);
 	WSACleanup();
+}
+
+bool bytesVerification(int bytesReceived) {
+
+	if (bytesReceived <= 0) {
+		cout << "Une erreur de reception s'est produite" << endl;
+		return false;
+	}
+	return true;
 }

