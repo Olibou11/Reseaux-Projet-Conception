@@ -27,11 +27,16 @@ bool bytesVerification(int bytesReceveid) {
 	return true;
 }
 
-void Decryption(char buf[4096]) {
+void Decryption(char buf[4096], string fileName) {
 
-	//decryption du fichier output.txt du client-----------------------------------------
-	fstream fileToDecrypt("output.txt");
-	ZeroMemory(buf, 4096);
+	//decryption du fichier output.txt du client
+	fstream fileToDecrypt(fileName, ios::in | ios::out);
+	
+	if (!fileToDecrypt.is_open()) {
+		cerr << "Error: Unable to open file!" << endl;
+		return;
+	}
+
 	//lecture de chaque ligne de output.txt et fait la decryption
 	while (fileToDecrypt.getline(buf, 4096))
 	{
@@ -39,7 +44,8 @@ void Decryption(char buf[4096]) {
 			buf[i] = buf[i] - 2; //la clef pout l'encryption est de 2, donc j'enleve 2 a la valeur ASCII
 
 		//ecriture du buf decrypter dans le fichier output.txt
-		fileToDecrypt.write(buf, strlen(buf));
+		fileToDecrypt << buf << endl;
+		cout << buf << endl;
 	}
 	fileToDecrypt.close();
 
@@ -181,7 +187,7 @@ int main() {
 
 					} while (fileDownloaded < fileSize);
 
-					Decryption(buf);
+					Decryption(buf, path);
 					cout << "Telechargement termine!" << endl;
 
 					file.close();

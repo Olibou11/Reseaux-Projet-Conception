@@ -37,19 +37,27 @@ bool bytesVerification(int bytesReceveid) {
 	return true;
 }
 
-void Encryption(char buf[4096]) {
+void Encryption(char buf[4096], string fileName) {
 
 	//Avant de lire le fichier output.txt et d'envoyer la taille, faire l'encryption
-	fstream fileToEncrypt("output.txt");
+	fstream fileToEncrypt(fileName, ios::in | ios::out);
+
+	if (!fileToEncrypt.is_open()) {
+		cerr << "Error: Unable to open file!" << endl;
+		return;
+	}
+
 	//lecture de chaque ligne de output.txt et fait l'encryption
 	while (fileToEncrypt.getline(buf, 4096))
 	{
-		for (int i = 0; i < strlen(buf); i++)
-			buf[i] = buf[i] + 2; //la clef pout l'encryption est de 2, donc j'ajoute 2 a la valeur ASCII
+		for (int i = 0; i < strlen(buf); i++) {
 
+			buf[i] = buf[i] + 2; //la clef pout l'encryption est de 2, donc j'ajoute 2 a la valeur ASCII
+		}
 
 		//ecriture du buf crypter dans le fichier output.txt
-		fileToEncrypt.write(buf, strlen(buf));
+		fileToEncrypt << buf << endl;
+		
 	}
 	fileToEncrypt.close();
 
@@ -205,7 +213,7 @@ int main() {
 				}
 
 				Sleep(1000); // Très important !!!!
-				Encryption(buf);
+				Encryption(buf, path);
 
 
 				// Lecture et envoie du ouput du CMD
