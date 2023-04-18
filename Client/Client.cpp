@@ -117,7 +117,6 @@ int main() {
 
 			if (userInput.size() > 0) {	// TODO : Faire une v�rification > 0 et faire attention aux espaces (done not testable)
 
-
 				ZeroMemory(buf, 4096);
 				send(clientSocket, userInput.c_str(), (int)userInput.size() + 1, 0);
 
@@ -166,11 +165,11 @@ int main() {
 						cout << "Telechargement termine!" << endl;
 						file.close();
 
-						// Affichage du coutenu de "output.txt" dans la console client
 
-						//decryption du message crypter
+						// Decryption du message
 						decryption(path);
 
+						// Affichage du coutenu de "output.txt" dans la console client
 						outputFile.open(path, ios::binary);
 
 						if (outputFile.is_open())
@@ -208,13 +207,11 @@ void decryption(string path) {
 	ZeroMemory(buf, 4096);
 
 	string line = "";
-
-	string t = "";
+	string lineTemp = ""; 
 
 	string file = "";
 
 	fstream fileToDecrypt(path, ios::in | ios::out);
-
 	ofstream of(path, ios::in | ios::out);
 
 	if (fileToDecrypt.is_open()) {
@@ -225,11 +222,11 @@ void decryption(string path) {
 			for (char c : line) {
 				c += -2;
 				string tt = string(1, c);
-				t.append(tt);
+				lineTemp.append(tt);
 			}
-			t.append("\n");
-			file += t;
-			t.clear();
+			lineTemp.append("\n"); 
+			file += lineTemp; 
+			lineTemp.clear(); 
 		}
 
 		fileToDecrypt.clear();
