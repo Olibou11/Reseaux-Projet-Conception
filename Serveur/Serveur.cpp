@@ -4,7 +4,7 @@
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-// Importations initiales
+// Importations
 
 #include <windows.h>
 #include <winsock2.h>
@@ -21,10 +21,8 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-// Namespaces
-
+// Namespace
 using namespace std;
-namespace fs = filesystem;
 
 // String pré-enregistrés
 
@@ -34,34 +32,9 @@ const string errorMsg = "<ERROR> ";
 
 // Méthodes supplémentaires
 
-bool bytesVerification(int bytesReceveid);
-void sendFileToClient(string path, SOCKET sock);
-
-void Encryption(char buf[4096], string fileName) {
-
-	//Avant de lire le fichier output.txt et d'envoyer la taille, faire l'encryption
-	fstream fileToEncrypt(fileName, ios::in | ios::out);
-
-	if (!fileToEncrypt.is_open()) {
-		cerr << "Error: Unable to open file!" << endl;
-		return;
-	}
-
-	//lecture de chaque ligne de output.txt et fait l'encryption
-	while (fileToEncrypt.getline(buf, 4096))
-	{
-		for (int i = 0; i < strlen(buf); i++) {
-
-			buf[i] = buf[i] + 2; //la clef pout l'encryption est de 2, donc j'ajoute 2 a la valeur ASCII
-		}
-
-		//ecriture du buf crypter dans le fichier output.txt
-		fileToEncrypt << buf << endl;
-
-	}
-	fileToEncrypt.close();
-
-}
+bool bytesVerification(int bytesReceveid, SOCKET sock, fd_set& master);
+void sendFileToClient(string path, SOCKET sock, fd_set& master);
+void encryption(string path);
 
 // Main
 
@@ -193,7 +166,7 @@ int main() {
 				ZeroMemory(buf, 4096);
 				bytesReceived = recv(sock, buf, 4096, 0);
 
-				if (bytesVerification(bytesReceived)) {
+				if (bytesVerification(bytesReceived, sock, master)) {
 
 					// Transformation de la commande et affichage
 
@@ -211,7 +184,7 @@ int main() {
 				}
 
 				Sleep(1000);
-				Encryption(buf, path);
+
 				// Observation de la taille de "output.txt" afin d'observer une erreur potentielle
 
 				file.open(path, ios::binary);
@@ -227,12 +200,10 @@ int main() {
 					ZeroMemory(buf, 4096);
 
 					if (fileSize > 0) // La commande est valide
-						sendFileToClient(path, sock);
+						sendFileToClient(path, sock, master);
 					else
-						sendFileToClient(errorPath, sock);
+						sendFileToClient(errorPath, sock, master);
 				}
-				else
-					cout << errorMsg << "Erreur lors de l'ouverture" << endl;
 			}
 		}
 	}
@@ -242,17 +213,20 @@ int main() {
 }
 
 
-bool bytesVerification(int bytesReceveid) {
+bool bytesVerification(int bytesReceveid, SOCKET sock, fd_set& master) {
 
 	if (bytesReceveid <= 0) {
 		cout << "Une erreur de reception s'est produite" << endl;
-		// TODO : Socket close et retirer du master fd_set
-		return false;
+		closesocket(sock);
+		FD_CLR(sock, &master);
+		return 0;
 	}
 	return true;
 }
 
-void sendFileToClient(string path, SOCKET sock) {
+void sendFileToClient(string path, SOCKET sock, fd_set& master) {
+
+	encryption(path);
 
 	// Variables
 
@@ -274,7 +248,7 @@ void sendFileToClient(string path, SOCKET sock) {
 	ZeroMemory(buf, 4096);
 	bytesReceived = recv(sock, buf, 4096, 0);
 
-	if (bytesVerification(bytesReceived)) {
+	if (bytesVerification(bytesReceived, sock, master)) {
 
 		cout << clientMsg << "Confirmation obtenue!" << endl;
 
@@ -297,5 +271,43 @@ void sendFileToClient(string path, SOCKET sock) {
 
 		file.clear();
 		file.close();
+	}
+}
+
+void encryption(string path) {
+
+	char buf[4096];
+	ZeroMemory(buf, 4096);
+
+	string line = "";
+
+	string t = "";
+
+	string file = "";
+
+	fstream fileToEncrypt(path, ios::in | ios::out);
+
+	ofstream of(path, ios::in | ios::out);
+
+	if (fileToEncrypt.is_open()) {
+
+		//lecture de chaque ligne de output.txt et fait l'encryption
+
+		while (getline(fileToEncrypt, line)) {
+			for (char c : line) {
+				c += 2;
+				string tt = string(1, c);
+				t.append(tt);
+			}
+			t.append("\n");
+			file += t;
+			t.clear();
+		}
+
+		fileToEncrypt.clear();
+		fileToEncrypt.close();
+
+		of.write(file.c_str(), file.size());
+		of.close();
 	}
 }

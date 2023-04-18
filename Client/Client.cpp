@@ -4,7 +4,7 @@
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-// Importations initiales
+// Importations
 
 #include <iostream>
 #include <string>
@@ -27,41 +27,8 @@ const string clientMsg = "<CLIENT> ";
 
 // Méthodes supplémentaires
 
-
-
-// M�thode de v�rification des bytesRecv
-bool bytesVerification(int bytesReceveid) {
-
-	if (bytesReceveid <= 0) {
-		cout << "Une erreur de reception s'est produite" << endl;
-		return false;
-	}
-	return true;
-}
-
-void Decryption(char buf[4096], string fileName) {
-
-	//decryption du fichier output.txt du client
-	fstream fileToDecrypt(fileName, ios::in | ios::out);
-
-	if (!fileToDecrypt.is_open()) {
-		cerr << "Error: Unable to open file!" << endl;
-		return;
-	}
-
-	//lecture de chaque ligne de output.txt et fait la decryption
-	while (fileToDecrypt.getline(buf, 4096))
-	{
-		for (int i = 0; i < strlen(buf); i++)
-			buf[i] = buf[i] - 2; //la clef pout l'encryption est de 2, donc j'enleve 2 a la valeur ASCII
-
-		//ecriture du buf decrypter dans le fichier output.txt
-		fileToDecrypt << buf << endl;
-		cout << buf << endl;
-	}
-	fileToDecrypt.close();
-
-}
+bool bytesVerification(int bytesReceived, SOCKET clientSocket);
+void decryption(string path);
 
 // Main
 
@@ -137,76 +104,83 @@ int main() {
 	ZeroMemory(buf, 4096);
 	bytesReceived = recv(clientSocket, buf, 4096, 0);
 
-	if (bytesVerification(bytesReceived)) {
+	if (bytesVerification(bytesReceived, clientSocket)) {
 
 		cout << servMsg << string(buf, 0, bytesReceived) << endl;
 
-		// �change commande / .txt
+		// échange commande / .txt
 
 		while (true) {
 
 			cout << clientMsg << "Veuillez entrer une commande : ";
-			cin >> userInput; // TODO : Faire une v�rification > 0 et faire attention aux espaces
+			cin >> userInput; 
 
-			ZeroMemory(buf, 4096);
-			send(clientSocket, userInput.c_str(), (int)userInput.size() + 1, 0);
+			if (userInput.size() > 0) {	// TODO : Faire une v�rification > 0 et faire attention aux espaces (done not testable)
 
-			// R�ception de la taille du fichier "output.txt" du serveur
 
-			ZeroMemory(buf, 4096);
-			bytesReceived = recv(clientSocket, (char*)&fileSize, sizeof(long), 0);
-			cout << servMsg << "La taille du fichier est de " << fileSize << " bytes!" << endl;
+				ZeroMemory(buf, 4096);
+				send(clientSocket, userInput.c_str(), (int)userInput.size() + 1, 0);
 
-			// Envoie d'un message de confirmation
+				// R�ception de la taille du fichier "output.txt" du serveur
 
-			ZeroMemory(buf, 4096);
-			send(clientSocket, confirmation.c_str(), (int)confirmation.size() + 1, 0);
+				ZeroMemory(buf, 4096);
+				bytesReceived = recv(clientSocket, (char*)&fileSize, sizeof(long), 0);
 
-			// Réception du fichier "output.txt" morceaux par morceaux
+				if (bytesVerification(bytesReceived, clientSocket)) {
 
-			if (bytesVerification(bytesReceived)) {
+					cout << servMsg << "La taille du fichier est de " << fileSize << " bytes!" << endl;
 
-				file.open(path, ios::binary | ios::trunc);
+					// Envoie d'un message de confirmation
 
-				if (file.is_open()) {
+					ZeroMemory(buf, 4096);
+					send(clientSocket, confirmation.c_str(), (int)confirmation.size() + 1, 0);
 
-					file.clear();
+					// Réception du fichier "output.txt" morceaux par morceaux
 
-					do {
+					file.open(path, ios::binary | ios::trunc);
 
-						memset(buf, 0, 4096);
+					if (file.is_open()) {
 
-						bytesReceived = recv(clientSocket, buf, 4096, 0);
+						file.clear();
 
-						cout << "BytesReceived : " << bytesReceived << endl;
+						do {
 
-						if (bytesReceived == 0 || bytesReceived == -1) {
-							cout << errorMsg << "Le telechargement a echoue. Le client sera deconnecte!" << endl;
-							closesocket(clientSocket);
-							WSACleanup();
-							return 0;
-						}
+							memset(buf, 0, 4096);
 
-						file.write(buf, bytesReceived);
-						fileDownloaded += bytesReceived;
+							bytesReceived = recv(clientSocket, buf, 4096, 0);
 
-					} while (fileDownloaded < fileSize);
+							cout << "BytesReceived : " << bytesReceived << endl;
 
-					Decryption(buf, path);
-					cout << "Telechargement termine!" << endl;
-					file.close();
+							if (bytesReceived == 0 || bytesReceived == -1) {
+								cout << errorMsg << "Le telechargement a echoue. Le client sera deconnecte!" << endl;
+								closesocket(clientSocket);
+								WSACleanup();
+								return 0;
+							}
 
-					// Affichage du coutenu de "output.txt" dans la console client
+							file.write(buf, bytesReceived);
+							fileDownloaded += bytesReceived;
 
-					outputFile.open(path, ios::binary);
+						} while (fileDownloaded < fileSize);
 
-					if (outputFile.is_open())
-						cout << outputFile.rdbuf() << endl;
-					outputFile.close();
+						cout << "Telechargement termine!" << endl;
+						file.close();
 
+						// Affichage du coutenu de "output.txt" dans la console client
+
+						//decryption du message crypter
+						decryption(path);
+
+						outputFile.open(path, ios::binary);
+
+						if (outputFile.is_open())
+							cout << outputFile.rdbuf() << endl;
+						outputFile.close();
+
+					}
+					else
+						cout << errorMsg << "Erreur dans l'ouverture du fichier" << endl;
 				}
-				else
-					cout << errorMsg << "Erreur dans l'ouverture du fichier" << endl;
 			}
 		}
 	}
@@ -217,3 +191,51 @@ int main() {
 	WSACleanup();
 }
 
+bool bytesVerification(int bytesReceived, SOCKET clientSocket) {
+
+	if (bytesReceived <= 0) {
+		cout << errorMsg << "Une erreur de reception s'est produite!" << endl;
+		closesocket(clientSocket);
+		WSACleanup();
+		return 0;
+	}
+	return true;
+}
+
+void decryption(string path) {
+
+	char buf[4096];
+	ZeroMemory(buf, 4096);
+
+	string line = "";
+
+	string t = "";
+
+	string file = "";
+
+	fstream fileToDecrypt(path, ios::in | ios::out);
+
+	ofstream of(path, ios::in | ios::out);
+
+	if (fileToDecrypt.is_open()) {
+
+		//lecture de chaque ligne de output.txt et fait la decryption
+
+		while (getline(fileToDecrypt, line)) {
+			for (char c : line) {
+				c += -2;
+				string tt = string(1, c);
+				t.append(tt);
+			}
+			t.append("\n");
+			file += t;
+			t.clear();
+		}
+
+		fileToDecrypt.clear();
+		fileToDecrypt.close();
+
+		of.write(file.c_str(), file.size());
+		of.close();
+	}
+}
