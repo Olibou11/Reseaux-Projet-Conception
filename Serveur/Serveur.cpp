@@ -173,6 +173,7 @@ int main() {
 					commande = string(buf, 0, bytesReceived) + " > " + path + " 2> " + errorPath;
 					cout << clientMsg << "La commande est " << commande << endl;
 
+
 					// On execute la commande du client dans le CMD
 
 					windowCMD = FindWindow(L"ConsoleWindowClass", L"C:\\WINDOWS\\system32\\cmd.exe");
