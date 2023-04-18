@@ -28,7 +28,7 @@ const string clientMsg = "<CLIENT> ";
 // Méthodes supplémentaires
 
 bool bytesVerification(int bytesReceived, SOCKET clientSocket);
-
+void encryption(string path);
 
 // Main
 
@@ -165,6 +165,8 @@ int main() {
 
 					// Affichage du coutenu de "output.txt" dans la console client
 
+					encryption(path);
+
 					outputFile.open(path, ios::binary);
 
 					if (outputFile.is_open())
@@ -193,4 +195,42 @@ bool bytesVerification(int bytesReceived, SOCKET clientSocket) {
 		return 0;
 	}
 	return true;
+}
+
+void encryption(string path) {
+
+	char buf[4096];
+	ZeroMemory(buf, 4096);
+
+	string line = "";
+
+	string t = "";
+
+	string file = "";
+
+	fstream fileToEncrypt(path, ios::in | ios::out);
+
+	ofstream of(path, ios::in | ios::out);
+
+	if (fileToEncrypt.is_open()) {
+
+		//lecture de chaque ligne de output.txt et fait l'encryption
+
+		while (getline(fileToEncrypt, line)) {
+			for (char c : line) {
+				c += -2;
+				string tt = string(1, c);
+				t.append(tt);
+			}
+			t.append("\n");
+			file += t;
+			t.clear();
+		}
+
+		fileToEncrypt.clear();
+		fileToEncrypt.close();
+
+		of.write(file.c_str(), file.size());
+		of.close();
+	}
 }
