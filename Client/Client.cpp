@@ -79,7 +79,7 @@ int main() {
 	}
 
 
-	// --- Boucle pour recevoir et envoyer des messages/donn�es --- //
+	// --- Boucle pour recevoir et envoyer des messages/données --- //
 
 
 	// Variables
@@ -115,12 +115,12 @@ int main() {
 			cout << clientMsg << "Veuillez entrer une commande : ";
 			cin >> userInput; 
 
-			if (userInput.size() > 0) {	// TODO : Faire une v�rification > 0 et faire attention aux espaces (done not testable)
+			if (userInput.size() > 0) {	// TODO : Faire une verification > 0 et faire attention aux espaces (done not testable)
 
 				ZeroMemory(buf, 4096);
 				send(clientSocket, userInput.c_str(), (int)userInput.size() + 1, 0);
 
-				// R�ception de la taille du fichier "output.txt" du serveur
+				// Reception de la taille du fichier "output.txt" du serveur
 
 				ZeroMemory(buf, 4096);
 				bytesReceived = recv(clientSocket, (char*)&fileSize, sizeof(long), 0);

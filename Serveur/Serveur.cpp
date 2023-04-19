@@ -15,7 +15,6 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
-#include <filesystem>
 #include <fstream>
 #include <shellapi.h>
 
@@ -76,7 +75,7 @@ int main() {
 
 	bind(listeningSocket, (SOCKADDR*)&saServer, sizeof(saServer));
 
-	// Mettre WinSock en mode �coute (Un thread, mais peut supporter plusieurs clients)
+	// Mettre WinSock en mode écoute (Un thread, mais peut supporter plusieurs clients)
 
 	listen(listeningSocket, SOMAXCONN);
 
@@ -97,7 +96,7 @@ int main() {
 
 			if (sock == listeningSocket) {
 
-				// Cr�ation du socket client
+				// Création du socket client
 
 				sockaddr_in client;
 				SOCKET clientSocket;
@@ -209,7 +208,7 @@ int main() {
 		}
 	}
 
-	// M�nage de WinSock
+	// Ménage de WinSock
 	WSACleanup();
 }
 
