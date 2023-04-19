@@ -99,7 +99,7 @@ int main() {
 
 	const string path = "output.txt";
 
-	// R�ception du message de confirmation de connexion
+	// Réception du message de confirmation de connexion
 
 	ZeroMemory(buf, 4096);
 	bytesReceived = recv(clientSocket, buf, 4096, 0);
@@ -216,7 +216,7 @@ void decryption(string path) {
 
 	if (fileToDecrypt.is_open()) {
 
-		//lecture de chaque ligne de output.txt et fait la decryption
+		// Lecture de chaque ligne de output.txt et fait la decryption
 
 		while (getline(fileToDecrypt, line)) {
 			for (char c : line) {
