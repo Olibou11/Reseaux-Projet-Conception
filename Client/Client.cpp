@@ -115,7 +115,7 @@ int main() {
 			cout << clientMsg << "Veuillez entrer une commande : ";
 			cin >> userInput; 
 
-			if (userInput.size() > 0) {	// TODO : Faire une verification > 0 et faire attention aux espaces (done not testable)
+			if (userInput.size() > 0) {
 
 				ZeroMemory(buf, 4096);
 				send(clientSocket, userInput.c_str(), (int)userInput.size() + 1, 0);
